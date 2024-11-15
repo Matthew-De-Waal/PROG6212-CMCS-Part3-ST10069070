@@ -1,0 +1,395 @@
+﻿@model List<Request>
+
+@{
+    ViewData["Title"] = "UserAccount";
+
+}
+
+@section Scripts {
+
+    <script type="text/javascript">
+
+        // Variable Declarations
+        let selectedRequestIndex = -1;
+        let selectedRequestID = -1;
+        let rowSelected = false;
+        let inProgress = false;
+
+        function request_selected(index) {
+            if (selectedRequestIndex != -1) {
+                // Reset the row color.
+                document.getElementById("ROW-" + selectedRequestIndex).style.color = "black";
+                let children = document.getElementById("ROW-" + selectedRequestIndex).children;
+
+                for (let i = 0; i < children.length; i++) {
+                    children[i].classList.replace("table-cell-class3", "table-cell-class2");
+                }
+            }
+
+            if (selectedRequestIndex == index)
+                selectedRequestIndex = -1;
+            else {
+                selectedRequestIndex = index;
+
+                // Set the row color.
+                document.getElementById("ROW-" + selectedRequestIndex).style.color = "white";
+                let children = document.getElementById("ROW-" + selectedRequestIndex).children;
+
+                for (let i = 0; i < children.length; i++) {
+                    children[i].classList.replace("table-cell-class2", "table-cell-class3");
+                }
+            }
+
+            rowSelected = true;
+
+            if (selectedRequestIndex != -1) {
+                inProgress = true;
+                document.getElementById("tblDocuments").innerHTML = "<br /><b>Fetching documents, please wait...</b>";
+                // Post data
+                POST_DATA2("/UserAccount/UserAccount", null, [["ActionName", "SetRequestIndex"], ["RowSelected", selectedRequestIndex]], RequestSelected);
+            }
+            else {
+                document.getElementById("tblDocuments").innerHTML = "<br /><b>No document(s) found</b>"
+            }
+        }
+
+        function RequestSelected(status1) {
+            // Check if the status is OK.
+            if (status1 == 1) {
+                // Get data from the request.
+                GET_DATA("/UserAccount/UserAccount", [["ActionName", "GetRequestIndex"]], function (status2, response2) {
+                    // Create an object using JSON.
+                    let obj = JSON.parse(response2);
+                    selectedRequestIndex = obj.RequestIndex;
+                    selectedRequestID = obj.RequestID;
+
+                    // Get the data from the request.
+                    GET_DATA("/UserAccount/UserAccount", [["ActionName", "GetSupportingDocuments"], ["RequestID", selectedRequestID]], function (status3, response3) {
+                        let supportingDocuments = JSON.parse(response3);
+
+                        // Check if the length of the collection 'supportingDocuments' is greater than zero.
+                        if (supportingDocuments.length > 0) {
+                            let html = "<table style='width: 100%'>";
+
+                            // Iterate through the collection.
+                            for (let i = 0; i < supportingDocuments.length; i++) {
+                                html += "<tr>";
+                                html += "<td class='table-cell-class' style='width: 46%'>" + supportingDocuments[i].Name + "</td>";
+                                html += "<td class='table-cell-class' style='width: 18%'>" + round_off_to_mb(supportingDocuments[i].Size) + "</td>";
+                                html += "<td class='table-cell-class' style='width: 18%'>" + supportingDocuments[i].Type + "</td>";
+
+                                if (supportingDocuments[i].Type != "Unknown")
+                                    html += "<td class='table-cell-class' style='width: 18%'><button class='button-class button-class-small2' onclick='ViewDocument(" + supportingDocuments[i].DocumentID + ")'>View</button><br /><div style='height: 8px'></div><button class='button-class button-class-small2' onclick='DownloadDocument(" + i + ")'>Download</button><br /><div style='height: 4px'></div></td>";
+                                else
+                                    html += "<td class='table-cell-class' style='width: 18%'><button class='button-class button-class-small2' onclick='DownloadDocument(" + i + ")'>Download</button><br /><div style='height: 4px'></div></td>";
+
+                                html += "</tr>";
+                            }
+
+                            html += "</table>";
+                            document.getElementById("tblDocuments").innerHTML = html;
+                        }
+                        else {
+                            document.getElementById("tblDocuments").innerHTML = "<br /><b>No document(s) found</b>"
+                        }
+
+                        inProgress = false;
+                    });
+                });
+            }
+        }
+
+        function DownloadDocument(fileIndex) {
+            // Get data from the request.
+            GET_DATA("/UserAccount/UserAccount", [["ActionName", "GetDocumentContent"], ["RequestID", selectedRequestID], ["FileIndex", fileIndex]], FileContentRecieved);
+        }
+
+        function FileContentRecieved(status, content) {
+            // Variable Declarations
+            let filename = content.substring(1, content.lastIndexOf(']'));
+            let fileContent = content.substring(content.indexOf(']') + 1);
+
+            // Create a new html element that will perform the download operation.
+            let element = document.createElement("a");
+            element.href = "data:application/octet-stream;base64," + fileContent;
+            element.download = filename;
+            element.click();
+        }
+
+        function ViewDocument(documentId) {
+            // Redirect the user to the ViewDocument page.
+            window.open("../html/ViewDocument.html?DocumentID=" + documentId, "ViewDocument", "width=600,height=720");
+        }
+
+        function EditRequest() {
+            if (selectedRequestIndex != -1) {
+                if (!inProgress)
+                    // Redirect the user to the NewRequest page.
+                    window.location = "/Request/NewRequest?ActionName=EditRequest&RequestID=" + selectedRequestID;
+                else {
+                    // Show the loading screen if the webpage is taking long to respond.
+                    document.getElementById("main-screen").style.position = "absolute";
+                    document.getElementById("main-footer").style.position = "fixed";
+                    document.getElementById("loading-screen").style.top = ((window.innerHeight / 2) - (window.innerHeight / 4)) + window.scrollY + "px";
+                    document.getElementById("loading-screen").hidden = false;
+
+                    // Start a new interval.
+                    let interval = setInterval(function () {
+                        if (!inProgress) {
+                            // Stop the interval.
+                            clearInterval(interval);
+
+                            document.getElementById("main-screen").style.position = "relative";
+                            document.getElementById("main-footer").style.position = EMPTY_STRING;
+                            document.getElementById("loading-screen").hidden = true;
+
+                            // Redirect the user to the NewRequest page.
+                            window.location = "/Request/NewRequest?ActionName=EditRequest&RequestID=" + selectedRequestID;
+                        }
+                    }, 1);
+                }
+            }
+            else {
+                // Redirect the user to the Status page.
+                window.location = "/Home/Status?ActionName=EditRequest&Status=Failed";
+            }
+        }
+
+        function TrackRequest() {
+            if (selectedRequestIndex != -1) {
+                if (!inProgress)
+                    // Redirect the user to the TrackRequest page.
+                    window.location = "/Request/TrackRequest?RequestID=" + selectedRequestID;
+                else {
+                    document.getElementById("main-screen").style.position = "absolute";
+                    document.getElementById("main-footer").style.position = "fixed";
+                    document.getElementById("loading-screen").style.top = ((window.innerHeight / 2) - (window.innerHeight / 4)) + window.scrollY + "px";
+                    document.getElementById("loading-screen").hidden = false;
+
+                    // Start a new interval.
+                    let interval = setInterval(function () {
+                        if (!inProgress) {
+                            // Stop the interval.
+                            clearInterval(interval);
+
+                            // Hide the loading screen.
+                            document.getElementById("main-screen").style.position = "relative";
+                            document.getElementById("main-footer").style.position = EMPTY_STRING;
+                            document.getElementById("loading-screen").hidden = true;
+
+                            // Redirect the user to the TrackRequest page.
+                            window.location = "/Request/TrackRequest?RequestID=" + selectedRequestID;
+                        }
+                    }, 1);
+                }
+            }
+        }
+
+        function CancelRequest() {
+            if (selectedRequestIndex != -1) {
+                if (!inProgress) {
+                    // Redirect the user to the CancelRequest page.
+                    window.location = "/Request/CancelRequest?RequestID=" + selectedRequestID;
+                }
+                else {
+                    document.getElementById("main-screen").style.position = "absolute";
+                    document.getElementById("main-footer").style.position = "fixed";
+                    document.getElementById("loading-screen").style.top = ((window.innerHeight / 2) - (window.innerHeight / 4)) + window.scrollY + "px";
+                    document.getElementById("loading-screen").hidden = false;
+
+                    // Start a new interval.
+                    let interval = setInterval(function () {
+                        if (!inProgress) {
+                            // Stop the interval.
+                            clearInterval(interval);
+
+                            // Hide the loading screen.
+                            document.getElementById("main-screen").style.position = "relative";
+                            document.getElementById("main-footer").style.position = EMPTY_STRING;
+                            document.getElementById("loading-screen").hidden = true;
+
+                            // Redirect the user to the TrackRequest page.
+                            window.location = "/Request/TrackRequest?RequestID=" + selectedRequestID;
+                        }
+                    }, 1);
+                }
+            }
+        }
+
+        function ExportLog() {
+            // Get data from the request.
+            GET_DATA2("/Request/ExportLog", null, function (request) {
+                // Create a new html element that will perform the download operation.
+                let element = document.createElement("a");
+                element.href = "data:application/octet-stream;base64," + btoa(request.response);
+                element.download = request.getResponseHeader("FileName");
+                // Perform a click operation.
+                element.click();
+            });
+        }
+
+        function ManageAccount() {
+            if (!inProgress) {
+                // Redirect the user to the UpdateUserProfile page.
+                window.location = "/UserAccount/UpdateUserProfile?Role=Lecturer";
+            }
+            else {
+                document.getElementById("main-screen").style.position = "absolute";
+                document.getElementById("main-footer").style.position = "fixed";
+                document.getElementById("loading-screen").style.top = ((window.innerHeight / 2) - (window.innerHeight / 4)) + window.scrollY + "px";
+                document.getElementById("loading-screen").hidden = false;
+
+                // Start a new interval.
+                let interval = setInterval(function () {
+                    if (!inProgress) {
+                        // Stop the interval.
+                        clearInterval(interval);
+
+                        // Hide the loading screen.
+                        document.getElementById("main-screen").style.position = "relative";
+                        document.getElementById("main-footer").style.position = EMPTY_STRING;
+                        document.getElementById("loading-screen").hidden = true;
+
+                        // Redirect the user to the TrackRequest page.
+                        window.location = "/UserAccount/UpdateUserProfile?Role=Lecturer";
+                    }
+                }, 1);
+            }
+        }
+
+        // Show/Hide the supporting documents view.
+        function toggle_full_table_view() {
+            let bFullView = document.getElementById("tbl-cell2").hidden;
+
+            if (bFullView) {
+                document.getElementById("tbl-cell1").style.width = "65%";
+                document.getElementById("tbl-cell2").style.width = "34%";
+                document.getElementById("tbl-cell2").hidden = false;
+            }
+            else {
+                document.getElementById("tbl-cell1").style.width = "99%";
+                document.getElementById("tbl-cell2").style.width = "0%";
+                document.getElementById("tbl-cell2").hidden = true;
+            }
+        }
+
+    </script>
+
+}
+
+@{
+    <div align="center">
+        <div style="height: 1rem"></div>
+        <div>
+            <button class="button-class button-class-wide" onclick="window.location = '/Request/NewRequest?ActionName=NewRequest'"><img src="~/images/new-icon.png" height="24" />New Request</button>
+            <button class="button-class button-class-wide" onclick="EditRequest()"><img src="~/images/edit-icon.png" height="24" />Edit Request</button>
+            <button class="button-class button-class-wide" onclick="TrackRequest()"><img src="~/images/track-icon.png" height="24" />Track Request</button>
+            <button class="button-class button-class-wide" onclick="window.location.reload()"><img src="~/images/refresh-icon.png" height="24" />Refresh Request(s)</button>
+            <button class="button-class button-class-wide" onclick="CancelRequest()"><img src="~/images/cancel-icon.png" height="24" />Cancel Request(s)</button>
+            <button class="button-class button-class-wide" onclick="ExportLog()"><img src="~/images/export-icon.png" height="24" />Export Log</button>
+            <button class="button-class button-class-wide" onclick="ManageAccount()"><img src="~/images/account-icon.png" height="24" />Manage Account</button>
+        </div>
+        <br />
+
+        <div style="background-color: white">
+            <table style="width: 100%; height: 100vh">
+                <tr>
+                    <td id="tbl-cell1" align="center" style="width: 65%; vertical-align: top">
+                        <div style="background-color: white">
+                            <div style="background-color: #304c80">
+                                <br />
+                                <table cellpadding="16" class="request-display" style="width: 100%">
+                                    <tr>
+                                        <th class="table-cell-class" style="width: 10%">Request ID</th>
+                                        <th class="table-cell-class" style="width: 20%">Request Name</th>
+                                        <th class="table-cell-class" style="width: 30%">Description</th>
+                                        <th class="table-cell-class" style="width: 10%">Request Approved</th>
+                                        <th class="table-cell-class" style="width: 10%">Status</th>
+                                        <th class="table-cell-class" style="width: 10%">Date Submitted</th>
+                                        <th class="table-cell-class" style="width: 10%">Date Approved</th>
+                                    </tr>
+
+                                    <!-- This is where the claims will be displayed -->
+                                </table>
+                                <br />
+                            </div>
+
+                            @{
+                                if (this.Model.Count > 0)
+                                {
+                                    <div style="width: 100%; height: 90vh; overflow-y: scroll">
+                                        <table style="width: 100%">
+
+                                            @{
+                                                int count = 0;
+
+                                                // Iterate through the collection.
+                                                foreach (Request request in this.Model)
+                                                {
+                                                    var requestApproved = string.Empty;
+                                                    string sDateSubmitted = request.DateSubmitted.HasValue ? request.DateSubmitted.Value.ToString("yyyy/MM/dd HH:mm:ss") : string.Empty;
+                                                    string sDateApproved = request.DateApproved.HasValue ? request.DateApproved.Value.ToString("yyyy/MM/dd HH:mm:ss") : string.Empty;
+
+                                                    // Check if the request status is 'Approved'.
+                                                    if (request.RequestStatus == "Approved")
+                                                        requestApproved = "Yes";
+
+                                                    // Check if the request status is 'Rejected'.
+                                                    if (request.RequestStatus == "Rejected")
+                                                        requestApproved = "No";
+
+                                                    // Check if the request status is 'Pending'.
+                                                    if (request.RequestStatus == "Pending")
+                                                        requestApproved = "No";
+
+                                                    <tr id="ROW-@count" style="height: 64px; color: black" onclick="request_selected(@count)">
+                                                        <td class="table-cell-class table-cell-class2" style="width: 10%">@request.RequestID</td>
+                                                        <td class="table-cell-class table-cell-class2" style="width: 20%">@request.RequestFor</td>
+                                                        <td class="table-cell-class table-cell-class2" style="width: 30%">@request.Description</td>
+                                                        <td class="table-cell-class table-cell-class2" style="width: 10%">@requestApproved</td>
+                                                        <td class="table-cell-class table-cell-class2" style="width: 10%">@request.RequestStatus</td>
+                                                        <td class="table-cell-class table-cell-class2" style="width: 10%">@sDateSubmitted</td>
+                                                        <td class="table-cell-class table-cell-class2" style="width: 10%">@sDateApproved</td>
+                                                    </tr>
+
+                                                    count++;
+                                                }
+                                            }
+
+                                        </table>
+                                    </div>
+
+                                }
+                                else
+                                {
+                                    <br />
+                                    <b>No request(s) found</b>
+                                }
+                            }
+                        </div>
+                    </td>
+                    <td onclick="toggle_full_table_view()" style="width: 1%; height: 100%; background-color: #304c80"></td>
+                    <td id="tbl-cell2" align="center" style="vertical-align: top; width: 34%">
+                        <div style="background-color: white">
+                            <div align="left"><b>Supporting Document(s)</b></div>
+                            <table cellpadding="16" class="request-display" style="width: 100%">
+                                <tr style="background-color: #304c80">
+                                    <th class="table-cell-class" style="width: 46%">Document Name</th>
+                                    <th class="table-cell-class" style="width: 18%">Size (MB)</th>
+                                    <th class="table-cell-class" style="width: 18%">Type</th>
+                                    <th class="table-cell-class" style="width: 18%">Action</th>
+                                </tr>
+                            </table>
+
+                            <div id="tblDocuments" style="height: 100vh; overflow-y: scroll">
+                                <br />
+                                <b>No document(s) found</b>
+                            </div>
+
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+}

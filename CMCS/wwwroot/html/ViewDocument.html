@@ -1,0 +1,61 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>CMCS - View Document</title>
+    <style type="text/css">
+
+        body {
+            margin-left: 0px;
+            margin-top: 0px;
+            margin-right: 0px;
+            margin-bottom: 0px;
+        }
+
+    </style>
+    <script src="../js/site.js"></script>
+    <script type="text/javascript">
+
+        // Variable Declarations
+        let queryString = window.location.search;
+        let query = new URLSearchParams(queryString);
+        let documentId = query.get("DocumentID");
+
+        // Get data from the request.
+        GET_DATA2("/UserAccount/UserAccount", [["ActionName", "GetDocumentContent2"], ["DocumentID", documentId]], function (request) {
+            // The status is OK.
+            if (request.status == 1) {
+                let documentName = request.getResponseHeader("FileName");
+
+                if (getDocumentType(documentName) == "PDF")
+                    document.getElementById("document-display").src = "data:application/pdf;base64," + request.response;
+                else if (getDocumentType(documentName) == "PNG")
+                    document.getElementById("document-display").src = "data:image/png;base64," + request.response;
+                else if (getDocumentType(documentName) == "JPG")
+                    document.getElementById("document-display").src = "data:image/jpg;base64," + request.response;
+                else {
+                    document.getElementById("document-display").hidden = true;
+                    document.getElementById("errorMSG").hidden = false;
+                }
+            }
+        });
+
+        function document_onresize() {
+            // Resize the document-display to fit the whole screen.
+            let documentDisplay = document.getElementById("document-display");
+            documentDisplay.style.width = window.innerWidth + "px";
+            documentDisplay.style.height = window.innerHeight + "px";
+        }
+
+    </script>
+</head>
+<body onload="document_onresize()" onresize="document_onresize()">
+    <iframe id="document-display"></iframe>
+    <div id="errorMSG" align="center" hidden>
+        <img src="../images/error-icon.png" height="240" />
+        <br />
+        <br />
+        <b>This document is not supported.</b>
+    </div>
+</body>
+</html>

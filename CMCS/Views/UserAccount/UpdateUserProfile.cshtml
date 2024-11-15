@@ -1,0 +1,576 @@
+﻿@{
+    ViewData["Title"] = "Manage Account";
+}
+
+@section Scripts {
+
+    <script type="text/javascript">
+    
+        // Variable Declarations
+        let qualificationDocuments = null;
+        let identityDocuments = null;
+
+        let uploadedQualificationDocuments = [];
+        let uploadedIdentityDocuments = [];
+
+        let selectedQualificationIndex = -1;
+        let selectedIdentityIndex = -1;
+
+        let deleted_qualification_items = [];
+        let deleted_identity_items = [];
+
+        let queryString = document.location.search;
+        let query = new URLSearchParams(queryString);
+        let role = query.get("Role");
+
+        document.getElementById("btnUpdateAccount").disabled = true;
+
+        document.getElementById("main-screen").style.position = "absolute";
+        document.getElementById("main-footer").style.position = "fixed";
+        document.getElementById("loading-screen").style.top = ((window.innerHeight / 2) - (window.innerHeight / 4)) + window.scrollY + "px";
+        document.getElementById("loading-screen").hidden = false;
+
+        // Get data from the request.
+        GET_DATA("/UserAccount/UpdateUserProfile", [["ActionName", "GetUserAccountData"]], function(status, response) {
+            // Check if the status is OK.
+            if(status == 1)
+            {
+                // Create an object using JSON.
+                let userData = JSON.parse(response);
+
+                // Assign the values of each element with the userData.
+                document.getElementById("txtFirstName").value = userData.FirstName;
+                document.getElementById("txtLastName").value = userData.LastName;
+                document.getElementById("txtIdentityNumber").value = userData.IdentityNumber;
+                document.getElementById("txtEmailAddress").value = userData.EmailAddress;
+
+                // Obtain the documents from the userData.
+                qualificationDocuments = userData.QualificationDocuments;
+                identityDocuments = userData.IdentityDocuments;
+
+                // Display all the documents to the user.
+                DisplayDocuments();
+
+                // Check if the 'Recovery Method 1' is enabled.
+                if (userData.RecoveryMethod1Enabled) { 
+                    document.getElementById("chkRecoveryMethod1").checked = true;
+                    document.getElementById("btnDownload").disabled = false;
+                }
+
+                // Check if the 'Recovery Method 2' is enabled.
+                if (userData.RecoveryMethod2Enabled) {
+                    let accountRecovery = userData.AccountRecovery;
+                    let securityQuestion = accountRecovery.split(';')[0];
+                    let answer = accountRecovery.split(';')[1];
+
+                    document.getElementById("chkRecoveryMethod2").checked = true;
+                    document.getElementById("txtQuestion").value = securityQuestion;
+                    document.getElementById("txtAnswer").value = answer;
+                }
+
+                document.getElementById("btnUpdateAccount").disabled = false;
+
+                document.getElementById("main-screen").style.position = "relative";
+                document.getElementById("main-footer").style.position = EMPTY_STRING;
+                document.getElementById("loading-screen").hidden = true;
+            }
+        });
+
+        function qualification_selected(index) {
+            if (selectedQualificationIndex != -1) { 
+                // Reset the row color.
+                document.getElementById("_1_ROW-" + selectedQualificationIndex).style.backgroundColor = EMPTY_STRING;
+            }
+
+            if (selectedQualificationIndex == index)
+                selectedQualificationIndex = -1;
+            else
+            {
+                selectedQualificationIndex = index;
+                // Set the row color.
+                document.getElementById("_1_ROW-" + selectedQualificationIndex).style.backgroundColor = "rgba(255, 0, 0, 0.4)";
+            }
+        }
+
+        function identity_selected(index) { 
+            if (selectedIdentityIndex != -1) { 
+                // Reset the row color.
+                document.getElementById("_2_ROW-" + selectedIdentityIndex).style.backgroundColor = EMPTY_STRING;
+            }
+
+            if (selectedIdentityIndex == index)
+                selectedIdentityIndex = -1;
+            else
+            {
+                selectedIdentityIndex = index;
+                // Set the row color.
+                document.getElementById("_2_ROW-" + selectedIdentityIndex).style.backgroundColor = "rgba(255, 0, 0, 0.4)";
+            }
+        }
+
+        function DisplayDocuments()
+        {
+            // Variable Declarations
+            let qualificationHtml = "<table style='width: 100%'>";
+            let identityHtml = "<table style='width: 100%'>";
+
+            // Iterate through the 'qualificationDocuments' collection.
+            for (let i = 0; i < qualificationDocuments.length; i++) {
+                qualificationHtml += "<tr id='_1_ROW-" + i + "' onclick='qualification_selected(" + i + ")'><td style='width: 50%'>" + qualificationDocuments[i].Name + "</td><td style='width: 25%'>" + qualificationDocuments[i].Type + "</td><td style='width: 25%'>" + round_off_to_mb(qualificationDocuments[i].Size) + "</td></tr>";
+            }
+
+            // Iterate through the 'uploadedQualificationDocuments' collection.
+            for(let i = 0; i < uploadedQualificationDocuments.length; i++)
+            {
+                qualificationHtml += "<tr id='_1_ROW-" + (i + qualificationDocuments.length) + "' onclick='qualification_selected(" + (i + qualificationDocuments.length) + ")'><td style='width: 50%'>" + uploadedQualificationDocuments[i].name + "</td><td style='width: 25%'>" + getDocumentType(uploadedQualificationDocuments[i].name) + "</td><td style='width: 25%'>" + round_off_to_mb(uploadedQualificationDocuments[i].size) + "</td></tr>";
+            }
+
+            // Iterate through the 'identityDocuments' collection.
+            for (let i = 0; i < identityDocuments.length; i++) {
+                identityHtml += "<tr id='_2_ROW-" + i + "' onclick='identity_selected(" + i + ")'><td style='width: 50%'>" + identityDocuments[i].Name + "</td><td style='width: 25%'>" + identityDocuments[i].Type + "</td><td style='width: 25%'>" + round_off_to_mb(identityDocuments[i].Size) + "</td></tr>";
+            }
+
+            // Iterate through the 'uploadedIdentityDocuments' collection.
+            for (let i = 0; i < uploadedIdentityDocuments.length; i++) {
+                identityHtml += "<tr id='_2_ROW-" + (i + identityDocuments.length) + "' onclick='identity_selected(" + (i + identityDocuments.length) + ")'><td style='width: 50%'>" + uploadedIdentityDocuments[i].name + "</td><td style='width: 25%'>" + getDocumentType(uploadedIdentityDocuments[i].name) + "</td><td style='width: 25%'>" + round_off_to_mb(uploadedIdentityDocuments[i].size) + "</td></tr>";
+            }
+
+            qualificationHtml += "</table>";
+            identityHtml += "</table>";
+
+            // Assign the html to each element.
+            document.getElementById("qualifications").innerHTML = qualificationHtml;
+            document.getElementById("identity").innerHTML = identityHtml;
+        }
+
+        function UploadQualificationDocument() { 
+            // Create a fileDialog element.
+            let fileDialog = document.createElement("input");
+            fileDialog.type = "file";
+            // Allow multiple files to be selected.
+            fileDialog.multiple = true;
+            
+            fileDialog.onchange = function() {
+                let files = fileDialog.files;
+
+                // Iterate through the collection.
+                for(let i = 0; i < files.length; i++)
+                {
+                    uploadedQualificationDocuments[uploadedQualificationDocuments.length] = files[i];
+                    DisplayDocuments();
+                }
+            };
+
+            // Perform a click operation on the fileDialog element.
+            fileDialog.click();
+        }
+
+        function DeleteQualificationDocument() { 
+            if(selectedQualificationIndex >= qualificationDocuments.length)
+            {
+                // Delete an uploaded document.
+                let index = selectedQualificationIndex - qualificationDocuments.length;
+                uploadedQualificationDocuments = delete_item(uploadedQualificationDocuments, index);
+            }
+            else
+            {
+                // Delete an existing document.
+                deleted_qualification_items[deleted_qualification_items.length] = qualificationDocuments[selectedQualificationIndex].DocumentID;
+                qualificationDocuments = delete_item(qualificationDocuments, selectedQualificationIndex);
+            }
+
+            selectedQualificationIndex = -1;
+            // Display all the documents to the user.
+            DisplayDocuments();
+        }
+
+        function DeleteAllQualificationDocuments() {
+            // Variable Declaration
+            deleted_qualification_items = "DELETE_ALL";
+            qualificationDocuments = [];
+            uploadedQualificationDocuments = [];
+
+            // Display all the documents to the user.
+            DisplayDocuments();
+        }
+
+        function UploadIdentityDocument() { 
+            // Create a fileDialog element.
+            let fileDialog = document.createElement("input");
+            fileDialog.type = "file";
+            // Allow multiple files to be selected.
+            fileDialog.multiple = true;
+
+            fileDialog.onchange = function () {
+                let files = fileDialog.files;
+
+                // Iterate through the collection.
+                for (let i = 0; i < files.length; i++) {
+                    uploadedIdentityDocuments[uploadedIdentityDocuments.length] = files[i];
+                    DisplayDocuments();
+                }
+            };
+
+            // Perform a click operation.
+            fileDialog.click();
+        }
+
+        function DeleteIdentityDocument() { 
+            if(selectedIdentityIndex >= identityDocuments.length)
+            {
+                // Delete an uploaded document.
+                let index = selectedIdentityIndex - identityDocuments.length;
+                uploadedIdentityDocuments = delete_item(uploadedIdentityDocuments, index);
+            }
+            else
+            {
+                // Delete an existing document.
+                deleted_identity_items[deleted_identity_items.length] = identityDocuments[selectedIdentityIndex].DocumentID;
+                identityDocuments = delete_item(identityDocuments, selectedIdentityIndex);
+            }
+
+            selectedIdentityIndex = -1;
+            // Display all the documents to the user.
+            DisplayDocuments();
+        }
+
+        function DeleteAllIdentityDocuments() { 
+            deleted_identity_items = "DELETE_ALL";
+            identityDocuments = [];
+            uploadedIdentityDocuments = [];
+
+            DisplayDocuments();
+        }
+
+        function UpdateAccount()
+        {
+            // Variable Declarations
+            let firstName = document.getElementById("txtFirstName").value;
+            let lastName = document.getElementById("txtLastName").value;
+            let identityNumber = document.getElementById("txtIdentityNumber").value;
+            let emailAddress = document.getElementById("txtEmailAddress").value;
+            let currentPassword = document.getElementById("txtCurrentPassword").value;
+            let newPassword = document.getElementById("txtNewPassword").value;
+            let newPasswordConfirmed = document.getElementById("txtNewPasswordConfirmed").value;
+
+            // Data validation
+            let validation = firstName.length > 0 &&
+                lastName.length > 0 &&
+                identityNumber.length > 0 &&
+                emailAddress.length > 0;
+
+            let recoveryMethod1Enabled = document.getElementById("chkRecoveryMethod1").checked;
+            let recoveryMethod2Enabled = document.getElementById("chkRecoveryMethod2").checked;
+
+            let question = EMPTY_STRING;
+            let answer = EMPTY_STRING;
+
+            // Check if 'Recovery Method 1' is enabled.
+            if (recoveryMethod2Enabled) { 
+                question = document.getElementById("txtQuestion").value;
+                answer = document.getElementById("txtAnswer").value;
+
+                // Extend the validation process.
+                validation = validation && question.length > 0 && answer.length > 0;
+            }
+
+            if(currentPassword != EMPTY_STRING || newPassword != EMPTY_STRING || newPasswordConfirmed != EMPTY_STRING)
+            {
+                validation = validation && (currentPassword != EMPTY_STRING && newPassword != EMPTY_STRING && newPasswordConfirmed != EMPTY_STRING) 
+                             && IsStrongPassword(newPassword) && IsStrongPassword(newPasswordConfirmed);
+            }
+
+            // Check if the validation process succeeded.
+            if (validation) {
+                document.getElementById("main-screen").style.position = "absolute";
+                document.getElementById("main-footer").style.position = "fixed";
+                document.getElementById("loading-screen").style.top = ((window.innerHeight / 2) - (window.innerHeight / 4)) + window.scrollY + "px";
+                document.getElementById("loading-screen").hidden = false;
+
+                // Create a new object.
+                let userData = new Object();
+
+                // Assign data to the object.
+                userData.FirstName = firstName;
+                userData.LastName = lastName;
+                userData.IdentityNumber = identityNumber;
+                userData.EmailAddress = emailAddress;
+                userData.RecoveryMethod1Enabled = recoveryMethod1Enabled;
+                userData.RecoveryMethod2Enabled = recoveryMethod2Enabled;
+                userData.GenerateNewRecoveryFile = document.getElementById("chkGenerateNew").checked;
+                userData.SecurityQuestion = question;
+                userData.SecurityAnswer = answer;
+                userData.CurrentPassword = currentPassword;
+                userData.NewPassword = newPassword;
+                userData.NewPasswordConfirmed = newPasswordConfirmed;
+
+                // Variable Declarations
+                let qualification_documents = [];
+                let identity_documents = [];
+                let documentsRead = 0;
+
+                // Iterate through the 'uploadedQualificationDocuments' collection.
+                for (let i = 0; i < uploadedQualificationDocuments.length; i++) {
+                    qualification_documents[i] = new Object();
+                    qualification_documents[i].Name = uploadedQualificationDocuments[i].name;
+                    qualification_documents[i].Size = uploadedQualificationDocuments[i].size;
+
+                    // Create a FileReader object.
+                    let reader = new FileReader();
+                    reader.readAsDataURL(uploadedQualificationDocuments[i]);
+
+                    reader.onloadend = function () {
+                        qualification_documents[i].Content = reader.result;
+                        // Increase the count by one.
+                        documentsRead++;
+                    };
+                }
+
+                // Iterate through the 'uploadedIdentityDocuments' collection.
+                for (let i = 0; i < uploadedIdentityDocuments.length; i++) {
+                    identity_documents[i] = new Object();
+                    identity_documents[i].Name = uploadedIdentityDocuments[i].name;
+                    identity_documents[i].Size = uploadedIdentityDocuments[i].size;
+
+                    // Create a FileReader object.
+                    let reader = new FileReader();
+                    reader.readAsDataURL(uploadedIdentityDocuments[i]);
+
+                    reader.onloadend = function () {
+                        identity_documents[i].Content = reader.result;
+                        // Increase the count by one.
+                        documentsRead++;
+                    };
+                }
+
+                // Assign data to the variable 'userData'.
+                userData.QualificationDocuments = qualification_documents;
+                userData.IdentityDocuments = identity_documents;
+                userData.DeletedQualificationDocuments = deleted_qualification_items;
+                userData.DeletedIdentityDocuments = deleted_identity_items;
+
+                // Start a new interval.
+                let interval = setInterval(function () {
+                    // Check if the number of documents read, matches with the total number of documents.
+                    if (documentsRead == (uploadedQualificationDocuments.length + uploadedIdentityDocuments.length)) {
+                        // Post data
+                        POST_DATA2("/UserAccount/UpdateUserProfile", JSON.stringify(userData), [["ActionName", "UpdateAccount"]], function (status) {
+                            document.getElementById("main-screen").style.position = "relative";
+                            document.getElementById("main-footer").style.position = EMPTY_STRING;
+                            document.getElementById("loading-screen").hidden = true;
+                            
+                            // Check if the status is OK and the role is 'Lecturer'.
+                            if (status == 1 && role == "Lecturer") {
+                                // Redirect the user to the UserAccount page.
+                                window.location = "/UserAccount/UserAccount";
+                            }
+
+                            // Check if the status is OK and the role is 'Manager'.
+                            if(status == 1 && role == "Manager")
+                            {
+                                // Redirect the user to the ManageRequests page.a
+                                window.location = "/Request/ManageRequests";
+                            }
+                        });
+
+                        // Stop the interval.
+                        clearInterval(interval);
+                    }
+                });
+            }
+            else { 
+                // Redirect the user to the Status page.
+                window.location = "/Home/Status?ActionName=UpdateUserProfile&Status=Failed";
+            }
+        }
+
+        function CancelUpdate()
+        {
+            if (role == "Lecturer") {
+                // Redirect the user to the UserAccount page.
+                window.location = "/UserAccount/UserAccount";
+            }
+
+            if(role == "Manager")
+            {
+                // Redirect the user to the ManageRequests page.
+                window.location = "/Request/ManageRequests";
+            }
+        }
+
+        function DownloadRecoveryFile() { 
+            // Get data from the request.
+            GET_DATA("/UserAccount/UpdateUserProfile", [["ActionName", "GetRecoveryFile"]], function (status, response) {
+                // Check if the status is OK.
+                if(status == 1)
+                {
+                    // Create a new html element that will download the recovery file.
+                    let element = document.createElement("a");
+                    element.href = "data:text/plain;base64," + btoa(response);
+                    element.download = "RECOVERY-FILE.dat";
+                    // Perform a click operation.
+                    element.click();
+                }
+            });
+        }
+
+    </script>
+
+}
+
+<div align="center">
+    <div style="width: 650px">
+        <br />
+        <div style="background-color: rgb(35, 35, 35); background-image: radial-gradient(#2b5679, rgb(35, 35, 35)); border-radius: 16px">
+            <br />
+            <img src="~/images/account-icon-large.png" height="180" />
+            <br />
+            <br />
+        </div>
+        <div style="height: 2rem"></div>
+
+        <h3 align="left">Manage Your Account</h3>
+        <br />
+
+        <div style="text-align: left">
+            <b>Required fields are marked with an asterisk (*)</b>
+        </div>
+        <br />
+
+        <table style="width: 650px" cellpadding="4">
+
+            <tr>
+                <th>First Name: <span class="red-asterisk">*</span></th>
+                <td><input id="txtFirstName" type="text" style="width: 100%" /></td>
+            </tr>
+
+            <tr>
+                <th>Last Name: <span class="red-asterisk">*</span></th>
+                <td><input id="txtLastName" type="text" style="width: 100%" /></td>
+            </tr>
+
+            <tr>
+                <th>Identity Number (ID): <span class="red-asterisk">*</span></th>
+                <td><input id="txtIdentityNumber" type="text" style="width: 100%" /></td>
+            </tr>
+
+            <tr>
+                <th>Email Address: <span class="red-asterisk">*</span></th>
+                <td><input id="txtEmailAddress" type="text" style="width: 100%" /></td>
+            </tr>
+
+            <tr>
+                <td colspan="2">
+                    <br />
+                    <hr />
+                    <b>Qualification Document(s): <span class="red-asterisk">*</span></b>
+                    <br />
+                    <div>
+                        <table style="width: 100%">
+                            <tr style="background-color: rgb(220, 220, 220)">
+                                <th style="width: 50%">FileName</th>
+                                <th style="width: 25%">Type</th>
+                                <th style="width: 25%">Size (MB)</th>
+                            </tr>
+                        </table>
+                        <div id="qualifications" style="background-color: white; height: 150px; overflow-x: hidden; overflow-y: auto">
+                        </div>
+                        <div align="right">
+                            <button class="button-class button-class-small2" onclick="UploadQualificationDocument()">Upload</button>
+                            <button class="button-class button-class-small2" onclick="DeleteQualificationDocument()">Delete</button>
+                            <button class="button-class button-class-small2" onclick="DeleteAllQualificationDocuments()">Delete All</button>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+
+            <tr>
+                <td colspan="2">
+                    <br />
+                    <hr />
+                    <b>Proof of Identity Document(s): <span class="red-asterisk">*</span></b>
+                    <br />
+                    <div>
+                        <table style="width: 100%">
+                            <tr style="background-color: rgb(220, 220, 220)">
+                                <th style="width: 50%">FileName</th>
+                                <th style="width: 25%">Type</th>
+                                <th style="width: 25%">Size (MB)</th>
+                            </tr>
+                        </table>
+                        <div id="identity" style="background-color: white; height: 150px; overflow-x: hidden; overflow-y: auto">
+                        </div>
+                        <div align="right">
+                            <button class="button-class button-class-small2" onclick="UploadIdentityDocument()">Upload</button>
+                            <button class="button-class button-class-small2" onclick="DeleteIdentityDocument()">Delete</button>
+                            <button class="button-class button-class-small2" onclick="DeleteAllIdentityDocuments()">Delete All</button>
+                        </div>
+                    </div>
+                    <br />
+                </td>
+            </tr>
+
+            <tr style="height: 1rem"></tr>
+
+            <tr>
+                <th><input type="checkbox" id="chkRecoveryMethod1" style="color: red" />Recovery Method 1: Recovery File:</th>
+                <td>
+                    <input id="chkGenerateNew" type="checkbox" />Generate New
+                    <button id="btnDownload" class="button-class button-class-small2 button-class-auto-wide" onclick="DownloadRecoveryFile()" disabled>Download</button>
+                </td>
+            </tr>
+
+            <tr>
+                <th><input type="checkbox" id="chkRecoveryMethod2" style="color: red" />Recovery Method 2: Security Question</th>
+                <td>
+                    <table cellpadding="3">
+                        <tr>
+                            <th style="width: 100px">Question: <span class="red-asterisk">*</span></th>
+                            <td><input id="txtQuestion" type="text" style="width: 290px" /></td>
+                        </tr>
+                        <tr>
+                            <th style="width: 100px">Answer: <span class="red-asterisk">*</span></th>
+                            <td><input id="txtAnswer" type="text" style="width: 290px"/></td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+
+
+            <tr style="height: 2rem"></tr>
+
+            <tr>
+                <td colspan="2">
+                    <b>
+                        Enter your current and new password if you want to change your password,<br />
+                        otherwise leave these fields empty.<br /><br />
+                    </b>
+                </td>
+            </tr>
+
+            <tr>
+                <th>Current Password:</th>
+                <td><input id="txtCurrentPassword" type="password" value="" style="width: 100%" /></td>
+            </tr>
+
+            <tr>
+                <th>New Password:</th>
+                <td><input id="txtNewPassword" type="password" value="" style="width: 100%" /></td>
+            </tr>
+
+            <tr>
+                <th>Confirm New Password:</th>
+                <td><input id="txtNewPasswordConfirmed" type="password" value="" style="width: 100%" /></td>
+            </tr>
+
+        </table>
+        <br />
+        <br />
+
+        <div align="right" style="width: 600px">
+            <button id="btnUpdateAccount" class="button-class button-class-small" onclick="UpdateAccount()">Update</button>
+            <button class="button-class button-class-small" onclick="CancelUpdate()">Cancel</button>
+        </div>
+    </div>
+</div>
+

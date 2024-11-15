@@ -1,0 +1,437 @@
+﻿@model List<Request>
+
+@{
+    ViewData["Title"] = "Manage Requests";
+}
+
+@section Scripts {
+
+    <script type="text/javascript">
+
+        // Variable Declarations
+        let selectedIndex = -1;
+        let selectedIndex2 = -1;
+        let selectedRequestID = 0;
+
+        let queryString = window.location.search;
+        let query = new URLSearchParams(queryString);
+
+        // Check if the query has a 'RequestIndex' parameter.
+        if (query.has("RequestIndex")) {
+            let requestIndex = parseInt(query.get("RequestIndex"), 10);
+            row_selected(requestIndex);
+        }
+
+        document.getElementById("btnViewRequestInfo").disabled = true;
+        document.getElementById("btnViewLecturerInfo").disabled = true;
+
+        function row_selected(index) {
+            if (selectedIndex != -1) {
+                // Reset the row color.
+                document.getElementById("ROW-" + selectedIndex).style.backgroundColor = "white";
+                document.getElementById("ROW-" + selectedIndex).style.color = "black";
+            }
+
+            if (selectedIndex == index) {
+                selectedIndex = -1;
+            }
+            else {
+                selectedIndex = index;
+                // Set the row color.
+                document.getElementById("ROW-" + selectedIndex).style.backgroundColor = "rgba(240, 0, 0, 0.8)";
+                document.getElementById("ROW-" + selectedIndex).style.color = "white";
+            }
+
+            if (selectedIndex != -1) {
+                selectedRequestID = document.getElementById("ROW-" + selectedIndex).getAttribute("data-request-id");
+
+                document.getElementById("btnManageAccount").disabled = true;
+                document.getElementById("btnViewDocument").disabled = true;
+                document.getElementById("btnDownloadDocument").disabled = true;
+
+                document.getElementById("main-screen").style.position = "absolute";
+                document.getElementById("main-footer").style.position = "fixed";
+                document.getElementById("loading-screen").style.top = ((window.innerHeight / 2) - (window.innerHeight / 4)) + window.scrollY + "px";
+                document.getElementById("loading-screen").hidden = false;
+
+                // Get data from the request.
+                GET_DATA2("/Request/ManageRequests", [["ActionName", "GetRequestData"], ["RequestID", selectedRequestID]], RequestSelected);
+            }
+            else {
+                // Set the inner html of the 'supporting-documents' element.
+                document.getElementById("supporting-documents").innerHTML = "<br /><p align='center' style='margin: 0px'><b>Nothing found</b></p><br />";
+
+                // Assign the elements' inner html.
+                document.getElementById("request-id").innerHTML = EMPTY_STRING;
+                document.getElementById("lecturer-id").innerHTML = EMPTY_STRING;
+                document.getElementById("lecturer").innerHTML = EMPTY_STRING;
+                document.getElementById("date-submitted").innerHTML = EMPTY_STRING;
+                document.getElementById("date-approved").innerHTML = EMPTY_STRING;
+                document.getElementById("approved").innerHTML = EMPTY_STRING;
+                document.getElementById("status").innerHTML = EMPTY_STRING;
+
+                document.getElementById("btnViewRequestInfo").disabled = true;
+                document.getElementById("btnViewLecturerInfo").disabled = true;
+            }
+        }
+
+        function row_selected2(index) {
+            if (selectedIndex2 != -1) {
+                // Reset the row color.
+                document.getElementById("_ROW-" + selectedIndex2).style.backgroundColor = "white";
+                document.getElementById("_ROW-" + selectedIndex2).style.color = "black";
+            }
+
+            if (selectedIndex2 == index) {
+
+                selectedIndex2 = -1;
+            }
+            else {
+                selectedIndex2 = index;
+                // Set the row color.
+                document.getElementById("_ROW-" + selectedIndex2).style.backgroundColor = "rgba(240, 0, 0, 0.8)";
+                document.getElementById("_ROW-" + selectedIndex2).style.color = "white";
+            }
+        }
+
+        function AcceptRequest() {
+            if (selectedIndex != -1) {
+                document.getElementById("main-screen").style.position = "absolute";
+                document.getElementById("main-footer").style.position = "fixed";
+                document.getElementById("loading-screen").style.top = ((window.innerHeight / 2) - (window.innerHeight / 4)) + window.scrollY + "px";
+                document.getElementById("loading-screen").hidden = false;
+
+                // Post data
+                POST_DATA2("/Request/ManageRequests", null, [["ActionName", "AcceptRequest"], ["RequestID", selectedRequestID]], RequestApproved);
+            }
+        }
+
+        function RequestApproved(status) {
+            if (status == 1) {
+                document.getElementById("main-screen").style.position = "relative";
+                document.getElementById("main-footer").style.position = EMPTY_STRING;
+                document.getElementById("loading-screen").hidden = true;
+
+                // Reload the page.
+                window.location = "/Request/ManageRequests?RequestIndex=" + selectedIndex;
+            }
+        }
+
+        function RejectRequest() {
+            if (selectedIndex != -1) {
+                document.getElementById("main-screen").style.position = "absolute";
+                document.getElementById("main-footer").style.position = "fixed";
+                document.getElementById("loading-screen").style.top = ((window.innerHeight / 2) - (window.innerHeight / 4)) + window.scrollY + "px";
+                document.getElementById("loading-screen").hidden = false;
+
+                // Post data
+                POST_DATA2("/Request/ManageRequests", null, [["ActionName", "RejectRequest"], ["RowSelected", selectedIndex], ["RequestID", selectedRequestID]], RequestRejected);
+            }
+        }
+
+        function RequestRejected(status) {
+            if (status == 1) {
+                document.getElementById("main-screen").style.position = "relative";
+                document.getElementById("main-footer").style.position = EMPTY_STRING;
+                document.getElementById("loading-screen").hidden = true;
+
+                // Reload the page.
+                window.location = "/Request/ManageRequests?RequestIndex=" + selectedIndex;
+            }
+        }
+
+        function RequestSelected(request) {
+            if (request.status == 1) {
+                document.getElementById("main-screen").style.position = "relative";
+                document.getElementById("main-footer").style.position = EMPTY_STRING;
+                document.getElementById("loading-screen").hidden = true;
+
+                // Variable Declarations
+                let requestId = document.getElementById("ROW-" + selectedIndex).getAttribute("data-request-id");
+                let lecturerId = document.getElementById("ROW-" + selectedIndex).getAttribute("data-lecturer-id");
+                let lecturer = document.getElementById("ROW-" + selectedIndex).getAttribute("data-lecturer");
+                let dateSubmitted = document.getElementById("ROW-" + selectedIndex).getAttribute("data-date-submitted");
+                let dateApproved = document.getElementById("ROW-" + selectedIndex).getAttribute("data-date-approved");
+                let approved = document.getElementById("ROW-" + selectedIndex).getAttribute("data-approved");
+                let status = document.getElementById("ROW-" + selectedIndex).getAttribute("data-status");
+
+                // Assign the elements' inner html.
+                document.getElementById("request-id").innerHTML = requestId;
+                document.getElementById("lecturer-id").innerHTML = lecturerId;
+                document.getElementById("lecturer").innerHTML = lecturer;
+                document.getElementById("date-submitted").innerHTML = dateSubmitted;
+                document.getElementById("date-approved").innerHTML = dateApproved;
+                document.getElementById("approved").innerHTML = approved;
+                document.getElementById("status").innerHTML = status;
+
+                // Create a object using JSON.
+                let supportingDocuments = JSON.parse(request.response);
+
+                // Check if the length of the 'supportingDocuments' object is greater than zero.
+                if (supportingDocuments.length > 0) {
+                    let html = "<table style='width: 100%'>";
+
+                    // Iterate through the collection.
+                    for (let i = 0; i < supportingDocuments.length; i++) {
+                        html += "<tr id='_ROW-" + i + "' data-document-id='" + supportingDocuments[i].DocumentID + "' onclick='row_selected2(" + i + ")'><td style='width: 50%'>" + supportingDocuments[i].Name + "</td><td style='width: 25%'>" + supportingDocuments[i].Type + "</td><td style='width: 25%'>" + supportingDocuments[i].Size + "</td></tr>";
+                    }
+
+                    html += "</table>";
+
+                    // Assign the html to the element.
+                    document.getElementById("supporting-documents").innerHTML = html;
+                }
+                else {
+                    // Assign the html to the element.
+                    document.getElementById("supporting-documents").innerHTML = "<br /><p align='center' style='margin: 0px'><b>Nothing found</b></p><br />";
+                }
+
+                setTimeout(function () {
+                    document.getElementById("btnManageAccount").disabled = false;
+                    document.getElementById("btnViewDocument").disabled = false;
+                    document.getElementById("btnDownloadDocument").disabled = false;
+                    document.getElementById("btnViewRequestInfo").disabled = false;
+                    document.getElementById("btnViewLecturerInfo").disabled = false;
+                }, 500);
+            }
+        }
+
+        function ViewDocument() {
+            if (selectedIndex2 != -1) {
+                let documentId = document.getElementById("_ROW-" + selectedIndex2).getAttribute("data-document-id");
+                window.open("../html/ViewDocument.html?DocumentID=" + documentId, "ViewDocument", "width=600,height=720");
+            }
+            else {
+                // Show notification dialog.
+                alert("Please select a document to view.");
+            }
+        }
+
+        function DownloadDocument() {
+            if (selectedIndex2 != -1) {
+                let requestID = document.getElementById("ROW-" + selectedIndex).getAttribute("data-request-id");
+                // Get data from the request.
+                GET_DATA("/Request/ManageRequests", [["ActionName", "GetDocumentContent"], ["RequestID", requestID], ["FileIndex", selectedIndex2]], FileContentRecieved);
+            }
+            else {
+                // Show notification dialog.
+                alert("Please select a document to download.");
+            }
+        }
+
+        function FileContentRecieved(status, content) {
+            // Variable Declarations
+            let filename = content.substring(1, content.lastIndexOf(']'));
+            let fileContent = content.substring(content.indexOf(']') + 1);
+
+            // Create an html element.
+            let element = document.createElement("a");
+            element.href = "data:application/octet-stream;base64," + fileContent;
+            element.download = filename;
+            element.click();
+        }
+
+        function UserLogout() {
+            // Perform a UserLogout request.
+            window.location = "/UserAccount/UserLogout";
+        }
+
+        function ViewRequestInfo() {
+            if (selectedIndex != -1) {
+                // Open a new window.
+                window.open("../html/RequestInfo.html?RequestID=" + selectedRequestID, null, "width=720,height=500");
+            }
+        }
+
+        function ViewLecturerInfo()
+        {
+            if(selectedIndex != -1)
+            {
+                let lecturerId = document.getElementById("ROW-" + selectedIndex).getAttribute("data-lecturer-id");
+
+                // Open a new window.
+                window.open("../html/LecturerInfo.html?LecturerID=" + lecturerId, null, "width=720,height=500");
+            }
+        }
+
+    </script>
+}
+
+<div align="center">
+
+    <div style="width: 800px">
+        <br />
+        <div style="background-color: rgb(35, 35, 35); background-image: radial-gradient(#2b5679, rgb(35, 35, 35)); border-radius: 16px; width: 600px">
+            <br />
+            <img src="~/images/tools-icon-large.png" height="180" />
+            <br />
+            <br />
+        </div>
+        <div style="height: 3rem"></div>
+
+        <div>
+            <table style="width: 800px">
+                <tr>
+                    <td>
+                        <h3 align="left">Manage Requests</h3>
+                    </td>
+                    <td align="right">
+                        <button id="btnManageAccount" class="button-class button-class-small button-class-auto-wide" onclick="window.location = '/UserAccount/UpdateUserProfile?Role=Manager'">Manage Your Account</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div style="height: 1rem"></div>
+
+        <div style="background-color: white">
+            <table style="width: 800px; background-color: rgb(240, 240, 240)">
+                <tr style="background-color: rgb(220, 220, 220)">
+                    <th style="width: 15%">Request ID</th>
+                    <th style="width: 35%">Lecturer</th>
+                    <th style="width: 20%">Date</th>
+                    <th style="width: 10%">Approved</th>
+                    <th style="width: 20%">Status</th>
+                </tr>
+            </table>
+            <div style="overflow-y: scroll; overflow-x: hidden; height: 300px">
+                @if (this.Model.Count > 0)
+                {
+                    <table id="requestList" style="width: 800px">
+
+                        @{
+                            // Variable Declaration
+                            int count = 0;
+                        }
+
+                        <!-- Iterate through the collection. -->
+                        @foreach (var request in Model)
+                        {
+                            // Variable Declarations
+                            string sApproved = request.RequestStatus == "Approved" ? "Yes" : "No";
+                            string? sDateSubmitted = request?.DateSubmitted?.ToString("dd/MM/yyyy HH:mm:ss");
+                            string? sDateApproved = request?.DateApproved?.ToString("dd/MM/yyyy HH:mm:ss");
+                            string? lecturer = ((string[])ViewData["LecturerNames"])[count];
+
+                            <tr id="ROW-@count"
+                                data-request-id="@request.RequestID"
+                                data-lecturer-id="@request.LecturerID"
+                                data-lecturer="@lecturer"
+                                data-date-submitted="@sDateSubmitted"
+                                data-date-approved="@sDateApproved"
+                                data-approved="@sApproved"
+                                data-status="@request.RequestStatus"
+                                onclick="row_selected(@count)" style="background-color: white">
+                                <td style="width: 15%;">@request.RequestID</td>
+                                <td style="width: 35%;">@(((string[])ViewData["LecturerNames"])[count])</td>
+                                <td style="width: 20%;">@request.DateSubmitted.Value.ToString("yyyy/MM/dd HH:mm:ss")</td>
+                                <td style="width: 10%;">@sApproved</td>
+                                <td style="width: 20%;">@request.RequestStatus</td>
+                            </tr>
+
+                            count++;
+                        }
+
+                    </table>
+                }
+                else
+                {
+                    <br />
+                    <b>No request(s) found</b>
+                    <br />
+                    <br />
+                }
+            </div>
+        </div>
+    </div>
+    <div style="height: 0.5rem"></div>
+    <hr style="width: 800px" />
+
+    <table style="width: 800px">
+        <tr>
+            <td style="width: 55%; vertical-align: top">
+                <div align="left">
+                    <table>
+                        <tr>
+                            <th>Request ID:</th>
+                            <td id="request-id"></td>
+                        </tr>
+                        <tr>
+                            <th>Lecturer ID:</th>
+                            <td id="lecturer-id"></td>
+                        </tr>
+                        <tr>
+                            <th>Lecturer:</th>
+                            <td id="lecturer"></td>
+                        </tr>
+                        <tr>
+                            <th>Date Submitted:</th>
+                            <td id="date-submitted"></td>
+                        </tr>
+                        <tr>
+                            <th>Date Approved:</th>
+                            <td id="date-approved"></td>
+                        </tr>
+                        <tr>
+                            <th>Approved:</th>
+                            <td id="approved"></td>
+                        </tr>
+                        <tr>
+                            <th>Status:</th>
+                            <td id="status"></td>
+                        </tr>
+                    </table>
+                    <br />
+                    <button id="btnViewRequestInfo" class="button-class button-class-small2 button-class-auto-wide" onclick="ViewRequestInfo()">View Request Info</button>
+                    <div style="height: 0.5rem"></div>
+                    <button id="btnViewLecturerInfo" class="button-class button-class-small2 button-class-auto-wide" onclick="ViewLecturerInfo()">View Lecturer Info</button>
+                </div>
+            </td>
+            <td style="width: 45%; vertical-align: top;">
+                <div>
+                    <b>Supporting Documents</b>
+                    <br />
+
+                    <div style="background-color: white">
+                        <table style="background-color: rgb(220, 220, 220); width: 100%">
+                            <tr>
+                                <th style="width: 50%">Name</th>
+                                <th style="width: 25%">Type</th>
+                                <th style="width: 25%">Size (MB)</th>
+                            </tr>
+                        </table>
+
+                        <div id="supporting-documents" style="overflow-y: scroll; height: 140px">
+
+                            <!-- Check if the selected request index is '-1' -->
+                            @if (CMCSMain.SelectedRequestIndex == -1)
+                            {
+                                <br />
+                                <p align="center" style="margin: 0px"><b>Nothing found</b></p>
+                                <br />
+                            }
+
+                        </div>
+                    </div>
+
+                    <div align="right">
+                        <button id="btnViewDocument" class="button-class button-class-small2" onclick="ViewDocument()">View</button>
+                        <button id="btnDownloadDocument" class="button-class button-class-small2" onclick="DownloadDocument()">Download</button>
+                    </div>
+                </div>
+            </td>
+        </tr>
+
+    </table>
+
+    <hr style="width: 800px" />
+
+    <div>
+        <br />
+        <b>Action: &nbsp;&nbsp;</b>
+        <button id="btnAccept" class="button-class button-class-small" onclick="AcceptRequest()">Accept</button>
+        <button id="btnReject" class="button-class button-class-small" onclick="RejectRequest()">Reject</button>
+    </div>
+
+</div>
+

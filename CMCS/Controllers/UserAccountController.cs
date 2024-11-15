@@ -352,53 +352,6 @@ namespace CMCS.Controllers
         }
 
         /// <summary>
-        /// CMCS ViewDocument page
-        /// </summary>
-        /// <returns></returns>
-        [HttpGet]
-        [HttpPost]
-        public async Task<IActionResult> ViewDocument()
-        {
-            // Open the database connection.
-            await CMCSDB.OpenConnection();
-
-            // Get the fields from the request headers.
-            int requestID = Convert.ToInt32(this.Request.Query["RequestID"]);
-            int documentIndex = Convert.ToInt32(this.Request.Query["DocumentIndex"]);
-
-            string sql = $"SELECT * FROM RequestDocument r INNER JOIN Document d ON r.DocumentID = d.DocumentID WHERE r.RequestID = {requestID}";
-            // Declare and instantiate a SqlDataReader? object.
-            SqlDataReader? reader = await CMCSDB.RunSQLResult(sql);
-            Document? document = null;
-
-            if (reader != null)
-            {
-                // Skip through the collection.
-                for (int i = 0; i < documentIndex; i++)
-                    reader.Read();
-
-                // Read data from the SqlDataReader? object.
-                reader.Read();
-
-                // Declare and instantiate a CMCSDocument object.
-                document = new Document();
-                document.DocumentID = Convert.ToInt32(reader["DocumentID"].ToString());
-                document.Name = reader["Name"].ToString();
-                document.Size = Convert.ToInt32(reader["Size"].ToString());
-                document.Type = reader["Type"].ToString();
-                document.Section = reader["Section"].ToString();
-                document.Content = reader["Content"].ToString();
-            }
-
-            // Close the SqlDataReader? object.
-            await CMCSDB.CloseReader();
-            // Close the database connection.
-            await CMCSDB.CloseConnection();
-
-            return View(document);
-        }
-
-        /// <summary>
         /// CMCS UpdateUserProfile page
         /// </summary>
         /// <returns></returns>

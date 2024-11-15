@@ -252,10 +252,7 @@
             // Check if the validation process succeeded.
             if (validation) {
                 // Show the loading screen if the webpage is taking long to respond.
-                document.getElementById("main-screen").style.position = "absolute";
-                document.getElementById("main-footer").style.position = "fixed";
-                document.getElementById("loading-screen").style.top = ((window.innerHeight / 2) - (window.innerHeight / 4)) + window.scrollY + "px";
-                document.getElementById("loading-screen").hidden = false;
+                showLoadingScreen();
 
                 let SupportingDocuments = [];
                 let documentsRead = 0;
@@ -298,9 +295,7 @@
         }
 
         function RequestUpdated(status) {
-            document.getElementById("main-screen").style.position = "relative";
-            document.getElementById("main-footer").style.position = EMPTY_STRING;
-            document.getElementById("loading-screen").hidden = true;
+            hideLoadingScreen();
             
             if (status == 1) { 
                 // Redirect the user to the UserAccount page.
@@ -377,15 +372,15 @@
             </tr>
             <tr>
                 <th>Hours Worked: <span class="red-asterisk">*</span></th>
-                <td><input id="txtHoursWorked" type="text" value="@ViewData["HoursWorked"]" style="width: 200px" onclick="calculateFinalPayment()" /></td>
+                <td><input id="txtHoursWorked" type="text" value="@ViewData["HoursWorked"]" style="width: 200px" oninput="calculateFinalPayment()" /></td>
             </tr>
             <tr>
                 <th>Hourly Rate: <span class="red-asterisk">*</span></th>
-                <td><input id="txtHourlyRate" type="text" value="@ViewData["HourlyRate"]" style="width: 200px" onclick="calculateFinalPayment()" /></td>
+                <td><input id="txtHourlyRate" type="text" value="@ViewData["HourlyRate"]" style="width: 200px" oninput="calculateFinalPayment()" /></td>
             </tr>
             <tr>
                 <th>Final Payment:</th>
-                <td>R <span id="finalPayment"></span></td>
+                <td>R <span id="finalPayment">0.00</span></td>
             </tr>
         </table>
 

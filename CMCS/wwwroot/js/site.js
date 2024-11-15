@@ -166,3 +166,16 @@ function delete_item(array, index) {
 function round_off_to_mb(value) {
     return (value / 1000000).toFixed(2);
 }
+
+function showLoadingScreen() {
+    document.getElementById("main-screen").style.position = "absolute";
+    document.getElementById("main-footer").style.position = "fixed";
+    document.getElementById("loading-screen").style.top = ((window.innerHeight / 2) - (window.innerHeight / 4)) + window.scrollY + "px";
+    document.getElementById("loading-screen").hidden = false;
+}
+
+function hideLoadingScreen() {
+    document.getElementById("main-screen").style.position = "relative";
+    document.getElementById("main-footer").style.position = EMPTY_STRING;
+    document.getElementById("loading-screen").hidden = true;
+}

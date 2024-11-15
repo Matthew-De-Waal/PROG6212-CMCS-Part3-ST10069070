@@ -128,10 +128,7 @@
                     window.location = "/Request/NewRequest?ActionName=EditRequest&RequestID=" + selectedRequestID;
                 else {
                     // Show the loading screen if the webpage is taking long to respond.
-                    document.getElementById("main-screen").style.position = "absolute";
-                    document.getElementById("main-footer").style.position = "fixed";
-                    document.getElementById("loading-screen").style.top = ((window.innerHeight / 2) - (window.innerHeight / 4)) + window.scrollY + "px";
-                    document.getElementById("loading-screen").hidden = false;
+                    showLoadingScreen();
 
                     // Start a new interval.
                     let interval = setInterval(function () {
@@ -139,9 +136,7 @@
                             // Stop the interval.
                             clearInterval(interval);
 
-                            document.getElementById("main-screen").style.position = "relative";
-                            document.getElementById("main-footer").style.position = EMPTY_STRING;
-                            document.getElementById("loading-screen").hidden = true;
+                            hideLoadingScreen();
 
                             // Redirect the user to the NewRequest page.
                             window.location = "/Request/NewRequest?ActionName=EditRequest&RequestID=" + selectedRequestID;
@@ -161,10 +156,7 @@
                     // Redirect the user to the TrackRequest page.
                     window.location = "/Request/TrackRequest?RequestID=" + selectedRequestID;
                 else {
-                    document.getElementById("main-screen").style.position = "absolute";
-                    document.getElementById("main-footer").style.position = "fixed";
-                    document.getElementById("loading-screen").style.top = ((window.innerHeight / 2) - (window.innerHeight / 4)) + window.scrollY + "px";
-                    document.getElementById("loading-screen").hidden = false;
+                    showLoadingScreen();
 
                     // Start a new interval.
                     let interval = setInterval(function () {
@@ -173,9 +165,7 @@
                             clearInterval(interval);
 
                             // Hide the loading screen.
-                            document.getElementById("main-screen").style.position = "relative";
-                            document.getElementById("main-footer").style.position = EMPTY_STRING;
-                            document.getElementById("loading-screen").hidden = true;
+                            hideLoadingScreen();
 
                             // Redirect the user to the TrackRequest page.
                             window.location = "/Request/TrackRequest?RequestID=" + selectedRequestID;
@@ -192,10 +182,7 @@
                     window.location = "/Request/CancelRequest?RequestID=" + selectedRequestID;
                 }
                 else {
-                    document.getElementById("main-screen").style.position = "absolute";
-                    document.getElementById("main-footer").style.position = "fixed";
-                    document.getElementById("loading-screen").style.top = ((window.innerHeight / 2) - (window.innerHeight / 4)) + window.scrollY + "px";
-                    document.getElementById("loading-screen").hidden = false;
+                    showLoadingScreen();
 
                     // Start a new interval.
                     let interval = setInterval(function () {
@@ -204,9 +191,7 @@
                             clearInterval(interval);
 
                             // Hide the loading screen.
-                            document.getElementById("main-screen").style.position = "relative";
-                            document.getElementById("main-footer").style.position = EMPTY_STRING;
-                            document.getElementById("loading-screen").hidden = true;
+                            hideLoadingScreen();
 
                             // Redirect the user to the TrackRequest page.
                             window.location = "/Request/TrackRequest?RequestID=" + selectedRequestID;
@@ -234,10 +219,7 @@
                 window.location = "/UserAccount/UpdateUserProfile?Role=Lecturer";
             }
             else {
-                document.getElementById("main-screen").style.position = "absolute";
-                document.getElementById("main-footer").style.position = "fixed";
-                document.getElementById("loading-screen").style.top = ((window.innerHeight / 2) - (window.innerHeight / 4)) + window.scrollY + "px";
-                document.getElementById("loading-screen").hidden = false;
+                showLoadingScreen();
 
                 // Start a new interval.
                 let interval = setInterval(function () {
@@ -246,9 +228,7 @@
                         clearInterval(interval);
 
                         // Hide the loading screen.
-                        document.getElementById("main-screen").style.position = "relative";
-                        document.getElementById("main-footer").style.position = EMPTY_STRING;
-                        document.getElementById("loading-screen").hidden = true;
+                        hideLoadingScreen();
 
                         // Redirect the user to the TrackRequest page.
                         window.location = "/UserAccount/UpdateUserProfile?Role=Lecturer";

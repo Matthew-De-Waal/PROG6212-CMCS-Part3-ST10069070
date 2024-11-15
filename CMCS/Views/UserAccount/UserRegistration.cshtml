@@ -197,6 +197,20 @@
             }
         }
 
+        function checkPassword()
+        {
+            let password = document.getElementById("txtPassword").value;
+            let passwordConfirmed = document.getElementById("txtPasswordConfirmed").value;
+
+            if (password != passwordConfirmed) { 
+                document.getElementById("lblMessage").innerHTML = "Warning: The two passwords do not match!";
+            }
+            else
+            {
+                document.getElementById("lblMessage").innerHTML = EMPTY_STRING;
+            }
+        }
+
     </script>
 
 }
@@ -266,12 +280,15 @@
 
         <tr>
             <th>Password: <span class="red-asterisk">*</span></th>
-            <td><input type="password" id="txtPassword" value="" style="width: 100%" /></td>
+            <td><input type="password" id="txtPassword" value="" style="width: 100%" oninput="checkPassword()" /></td>
         </tr>
 
         <tr>
             <th>Confirm Password: <span class="red-asterisk">*</span></th>
-            <td><input type="password" id="txtPasswordConfirmed" value="" style="width: 100%" /></td>
+            <td><input type="password" id="txtPasswordConfirmed" value="" style="width: 100%" oninput="checkPassword()" /></td>
+        </tr>
+        <tr>
+            <td align="right" colspan="2"><span id="lblMessage" style="color: red"></span></td>
         </tr>
     </table>
 

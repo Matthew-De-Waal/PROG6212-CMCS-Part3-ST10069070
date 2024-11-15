@@ -96,10 +96,7 @@
 
         function AcceptRequest() {
             if (selectedIndex != -1) {
-                document.getElementById("main-screen").style.position = "absolute";
-                document.getElementById("main-footer").style.position = "fixed";
-                document.getElementById("loading-screen").style.top = ((window.innerHeight / 2) - (window.innerHeight / 4)) + window.scrollY + "px";
-                document.getElementById("loading-screen").hidden = false;
+                showLoadingScreen();
 
                 // Post data
                 POST_DATA2("/Request/ManageRequests", null, [["ActionName", "AcceptRequest"], ["RequestID", selectedRequestID]], RequestApproved);
@@ -108,9 +105,7 @@
 
         function RequestApproved(status) {
             if (status == 1) {
-                document.getElementById("main-screen").style.position = "relative";
-                document.getElementById("main-footer").style.position = EMPTY_STRING;
-                document.getElementById("loading-screen").hidden = true;
+                hideLoadingScreen();
 
                 // Reload the page.
                 window.location = "/Request/ManageRequests?RequestIndex=" + selectedIndex;
@@ -119,10 +114,7 @@
 
         function RejectRequest() {
             if (selectedIndex != -1) {
-                document.getElementById("main-screen").style.position = "absolute";
-                document.getElementById("main-footer").style.position = "fixed";
-                document.getElementById("loading-screen").style.top = ((window.innerHeight / 2) - (window.innerHeight / 4)) + window.scrollY + "px";
-                document.getElementById("loading-screen").hidden = false;
+                showLoadingScreen();
 
                 // Post data
                 POST_DATA2("/Request/ManageRequests", null, [["ActionName", "RejectRequest"], ["RowSelected", selectedIndex], ["RequestID", selectedRequestID]], RequestRejected);
@@ -131,9 +123,7 @@
 
         function RequestRejected(status) {
             if (status == 1) {
-                document.getElementById("main-screen").style.position = "relative";
-                document.getElementById("main-footer").style.position = EMPTY_STRING;
-                document.getElementById("loading-screen").hidden = true;
+                hideLoadingScreen();
 
                 // Reload the page.
                 window.location = "/Request/ManageRequests?RequestIndex=" + selectedIndex;
@@ -142,9 +132,7 @@
 
         function RequestSelected(request) {
             if (request.status == 1) {
-                document.getElementById("main-screen").style.position = "relative";
-                document.getElementById("main-footer").style.position = EMPTY_STRING;
-                document.getElementById("loading-screen").hidden = true;
+                hideLoadingScreen();
 
                 // Variable Declarations
                 let requestId = document.getElementById("ROW-" + selectedIndex).getAttribute("data-request-id");

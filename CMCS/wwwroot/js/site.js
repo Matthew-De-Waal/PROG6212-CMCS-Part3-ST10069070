@@ -38,6 +38,19 @@ function IsStrongPassword(password) {
     return result;
 }
 
+function IsNumeric(s) {
+    let result = true;
+    let VALID_SYMBOLS = "0123456789.,";
+
+    for (let i = 0; i < s.length; i++) {
+        if (!VALID_SYMBOLS.includes(s[i])) {
+            result = false;
+        }
+    }
+
+    return result;
+}
+
 // This method gets the document type.
 function getDocumentType(filename) {
     let documentType = EMPTY_STRING;

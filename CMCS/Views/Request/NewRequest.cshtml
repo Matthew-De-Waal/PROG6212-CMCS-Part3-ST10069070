@@ -313,6 +313,26 @@
             }
         }
 
+        function calculateFinalPayment()
+        {
+            let sHoursWorked = document.getElementById("txtHoursWorked").value;
+            let sHourlyRate = document.getElementById("txtHourlyRate").value;
+
+            let validation = sHoursWorked.length > 0 && sHourlyRate.length > 0 &&
+                                IsNumeric(sHoursWorked) && IsNumeric(sHourlyRate);
+
+            if (validation) {
+                let hoursWorked = parseFloat(sHoursWorked);
+                let hourlyRate = parseFloat(sHourlyRate);
+                let finalPayment = hoursWorked * hourlyRate;
+
+                document.getElementById("finalPayment").innerHTML = finalPayment.toFixed(2).toString();
+            }
+            else { 
+                document.getElementById("finalPayment").innerHTML = "0.00";
+            }
+        }
+
     </script>
 }
 
@@ -328,13 +348,13 @@
                 // Check if the action name is 'NewRequest'.
                 if (sAction == "NewRequest")
                 {
-                                                        <img src="~/images/new-icon-large.png" height="180" />
+                                                                <img src="~/images/new-icon-large.png" height="180" />
                 }
 
                 // Check if the action name is 'EditRequest'.
                 if (sAction == "EditRequest")
                 {
-                                                        <img src="~/images/edit-icon-large.png" height="180" />
+                                                                <img src="~/images/edit-icon-large.png" height="180" />
                 }
             }
             <br />
@@ -357,11 +377,15 @@
             </tr>
             <tr>
                 <th>Hours Worked: <span class="red-asterisk">*</span></th>
-                <td><input id="txtHoursWorked" type="text" value="@ViewData["HoursWorked"]" style="width: 200px" /></td>
+                <td><input id="txtHoursWorked" type="text" value="@ViewData["HoursWorked"]" style="width: 200px" onclick="calculateFinalPayment()" /></td>
             </tr>
             <tr>
                 <th>Hourly Rate: <span class="red-asterisk">*</span></th>
-                <td><input id="txtHourlyRate" type="text" value="@ViewData["HourlyRate"]" style="width: 200px" /></td>
+                <td><input id="txtHourlyRate" type="text" value="@ViewData["HourlyRate"]" style="width: 200px" onclick="calculateFinalPayment()" /></td>
+            </tr>
+            <tr>
+                <th>Final Payment:</th>
+                <td>R <span id="finalPayment"></span></td>
             </tr>
         </table>
 
@@ -434,15 +458,15 @@
                 // Check if the action name is 'NewRequest'.
                 if (sAction == "NewRequest")
                 {
-                                                        <button class="button-class button-class-small" onclick="SubmitRequest()">Submit</button>
-                                                        <button class="button-class button-class-small" onclick="window.location = '/UserAccount/UserAccount'">Cancel</button>
+                                                                <button class="button-class button-class-small" onclick="SubmitRequest()">Submit</button>
+                                                                <button class="button-class button-class-small" onclick="window.location = '/UserAccount/UserAccount'">Cancel</button>
                 }
 
                 // Check if the action name is 'EditRequest'.
                 if (sAction == "EditRequest")
                 {
-                                                        <button class="button-class button-class-small" onclick="UpdateRequest()">Update</button>
-                                                        <button class="button-class button-class-small" onclick="window.location = '/UserAccount/UserAccount'">Cancel</button>
+                                                                <button class="button-class button-class-small" onclick="UpdateRequest()">Update</button>
+                                                                <button class="button-class button-class-small" onclick="window.location = '/UserAccount/UserAccount'">Cancel</button>
                 }
             }
         </div>

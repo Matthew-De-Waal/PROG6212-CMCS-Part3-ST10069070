@@ -10,6 +10,28 @@
         let qualificationDocuments = [];
         let identityDocuments = [];
 
+
+        if (sessionStorage.getItem("UserAccountType") != EMPTY_STRING) { 
+            let userAccountType = sessionStorage.getItem("UserAccountType");
+
+            if (userAccountType == "ADMIN") { 
+                document.getElementById("rdLecturer").checked = false;
+                document.getElementById("rdManager").checked = true;
+            }
+        }
+
+        if(sessionStorage.getItem("FirstName") != EMPTY_STRING)
+            document.getElementById("txtFirstName").value = sessionStorage.getItem("FirstName");
+
+        if (sessionStorage.getItem("LastName") != EMPTY_STRING)
+            document.getElementById("txtLastName").value = sessionStorage.getItem("LastName");
+
+        if (sessionStorage.getItem("IdentityNumber") != EMPTY_STRING)
+            document.getElementById("txtIdentityNumber").value = sessionStorage.getItem("IdentityNumber");
+
+        if (sessionStorage.getItem("EmailAddress") != EMPTY_STRING)
+            document.getElementById("txtEmailAddress").value = sessionStorage.getItem("EmailAddress");
+
         function rdLecturer_onclick() { 
             // Select the 'rdLecturer' radio button.
             document.getElementById("rdLecturer").checked = true;
@@ -96,6 +118,13 @@
             userEmailAddress = document.getElementById("txtEmailAddress").value;
             userPassword = document.getElementById("txtPassword").value;
             userPasswordConfirmed = document.getElementById("txtPasswordConfirmed").value;
+
+            sessionStorage.setItem("UserAccountType", userAccountType);
+            sessionStorage.setItem("FirstName", userFirstName);
+            sessionStorage.setItem("LastName", userLastName);
+            sessionStorage.setItem("IdentityNumber", userIdentityNumber);
+            sessionStorage.setItem("EmailAddress", userEmailAddress);
+
 
             // Validation process
             let validation = userFirstName.length > 0 &&
@@ -259,7 +288,7 @@
         </tr>
 
         <tr>
-            <th>Identity Number (ID): <span class="red-asterisk">*</span></th>
+            <th>Identity Number: <span class="red-asterisk">*</span></th>
             <td><input type="text" id="txtIdentityNumber" style="width: 100%" /></td>
         </tr>
 

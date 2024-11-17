@@ -12,21 +12,26 @@ using System.Data.SqlClient;
 using System.Linq.Expressions;
 using System.Security.Cryptography.Xml;
 using System.Text;
+using PdfSharp.Pdf;
+using PdfSharp.Pdf.Advanced;
+using PdfSharp.Drawing;
 
 namespace CMCS.Controllers
 {
     public class RequestController : Controller
     {
         // Data fields
-        private readonly AppDbContext _context;
+        private readonly AppDbContext? _context;
+        private readonly IConfiguration? _configuration;
 
         /// <summary>
         /// Master constructor
         /// </summary>
         /// <param name="context"></param>
-        public RequestController(AppDbContext context)
+        public RequestController(AppDbContext context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
         }
 
         /// <summary>
@@ -75,9 +80,162 @@ namespace CMCS.Controllers
             return View();
         }
 
+        [HttpGet]
+        [HttpPost]
         public async Task<IActionResult> HR_View()
         {
+            if (this.Request.Method == "POST")
+            {
+                if (this.Request.Headers["ActionName"] == "GenerateReport")
+                    HR_View_GenerateReport();
+
+                if (this.Request.Headers["ActionName"] == "DeleteAccountData")
+                    await HR_View_DeleteAccountData();
+
+                if (this.Request.Headers["ActionName"] == "DeleteAccount")
+                    await HR_View_DeleteAccount();
+            }
+
             return View();
+        }
+
+        private void HR_View_GenerateReport()
+        {
+            // Declarations
+            PdfDocument document = new PdfDocument();
+            PdfPage page = document.AddPage();
+
+            const int PAGE_WIDTH = 595;
+            const int PAGE_HEIGHT = 842;
+
+            page.Width = new XUnit(PAGE_WIDTH);
+            page.Height = new XUnit(PAGE_HEIGHT);
+
+            XGraphics graphics = XGraphics.FromPdfPage(page);
+
+            string? base64Logo = _configuration?.GetSection("Base64Resources").GetValue<string>("Logo");
+            byte[] logo_bytes = Convert.FromBase64String(base64Logo);
+            MemoryStream stream = new MemoryStream();
+            stream.Write(logo_bytes, 0, logo_bytes.Length);
+            XImage logo = XImage.FromStream(stream);
+
+            graphics.DrawImage(logo, (PAGE_WIDTH / 2) - (logo.PixelWidth / 2), 30);
+
+            MemoryStream outputStream = new MemoryStream();
+            document.Save(outputStream);
+            document.Close();
+
+            string base64_content = Convert.ToBase64String(outputStream.ToArray());
+
+            // The request succeeded.
+            this.Response.StatusCode = 1;
+            this.Response.WriteAsync(base64_content);
+            this.Response.CompleteAsync();
+        }
+
+        private async Task HR_View_DeleteAccountData()
+        {
+            await CMCSDB.OpenConnection();
+
+            string? identityNumber = this.Request.Headers["IdentityNumber"];
+            int lecturerId = await CMCSDB.FindLecturer(identityNumber);
+
+            if(lecturerId != 0)
+            {
+                // Declare and instantiate a generic collection.
+                List<int> requestList = new List<int>();
+
+                string sql = $"SELECT * FROM Request WHERE LecturerID = {lecturerId}";
+                SqlDataReader? reader = await CMCSDB.RunSQLResult(sql);
+
+                while(reader != null && reader.Read())
+                {
+                    string? sRequestID = reader["RequestID"].ToString();
+                    int iRequestID = Convert.ToInt32(sRequestID);
+                    requestList.Add(iRequestID);
+                }
+
+                for(int i = 0; i < requestList.Count; i++)
+                {
+                    int requestId = requestList[i];
+
+                    string sql_delete1 = $"DELETE FROM Request WHERE RequestID = {requestId}";
+                    string sql_delete2 = $"DELETE FROM RequestDocument WHERE RequestID = {requestId}";
+                    string sql_delete3 = $"DELETE FROM RequestProcess WHERE RequestID = {requestId}";
+
+                    await CMCSDB.RunSQLNoResult(sql_delete1);
+                    await CMCSDB.RunSQLNoResult(sql_delete2);
+                    await CMCSDB.RunSQLNoResult(sql_delete3);
+                }
+
+                string sql2 = $"DELETE FROM Document WHERE UserID = '{identityNumber}' AND Section = 'REQUEST'";
+                await CMCSDB.RunSQLNoResult(sql2);
+
+                // The request succeeded.
+                this.Response.StatusCode = 1;
+            }
+            else
+            {
+                // The request failed.
+                this.Response.StatusCode = 2;
+            }
+
+            await CMCSDB.CloseConnection();
+        }
+
+        private async Task HR_View_DeleteAccount()
+        {
+            await CMCSDB.OpenConnection();
+
+            string? identityNumber = this.Request.Headers["IdentityNumber"];
+            int lecturerId = await CMCSDB.FindLecturer(identityNumber);
+
+            if(lecturerId != 0)
+            {
+                // Declare and instantiate a generic collection.
+                List<int> requestList = new List<int>();
+
+                string sql = $"SELECT * FROM Request WHERE LecturerID = {lecturerId}";
+                SqlDataReader? reader = await CMCSDB.RunSQLResult(sql);
+
+                while (reader != null && reader.Read())
+                {
+                    string? sRequestID = reader["RequestID"].ToString();
+                    int iRequestID = Convert.ToInt32(sRequestID);
+                    requestList.Add(iRequestID);
+                }
+
+                await CMCSDB.CloseReader();
+
+                for (int i = 0; i < requestList.Count; i++)
+                {
+                    int requestId = requestList[i];
+
+                    string sql_delete1 = $"DELETE FROM Request WHERE RequestID = {requestId}";
+                    string sql_delete2 = $"DELETE FROM RequestDocument WHERE RequestID = {requestId}";
+                    string sql_delete3 = $"DELETE FROM RequestProcess WHERE RequestID = {requestId}";
+
+                    await CMCSDB.RunSQLNoResult(sql_delete1);
+                    await CMCSDB.RunSQLNoResult(sql_delete2);
+                    await CMCSDB.RunSQLNoResult(sql_delete3);
+                }
+
+                string sql2 = $"DELETE FROM Document WHERE UserID = '{identityNumber}'";
+                await CMCSDB.RunSQLNoResult(sql2);
+
+                string sql3 = $"DELETE FROM Lecturer WHERE LecturerID = {lecturerId}";
+                await CMCSDB.RunSQLNoResult(sql3);
+
+                // The request succeeded.
+                this.Response.StatusCode = 1;
+            }
+            else
+            {
+                // The request failed.
+                this.Response.StatusCode = 2;
+            }
+
+            await CMCSDB.CloseConnection();
         }
 
         /// <summary>

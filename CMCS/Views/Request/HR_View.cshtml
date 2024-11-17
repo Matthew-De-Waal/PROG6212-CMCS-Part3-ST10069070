@@ -1,7 +1,114 @@
-﻿
-@{
+﻿@{
     ViewData["Title"] = "HR_View";
 }
 
-<h1>HR_View</h1>
+@section Scripts {
 
+    <script type="text/javascript">
+
+        function DownloadReport() {
+            GET_DATA("/Request/HR_View", [["ActionName", "GenerateReport"]], function (status, response) {
+                if (status == 1) {
+                    // Create an html element.
+                    let element = document.createElement("a");
+                    element.href = "data:application/octet-stream;base64," + response;
+                    element.download = "Admin-Report.pdf";;
+                    element.click();
+                }
+            });
+        }
+
+        function DeleteAccountData() {
+            let identityNumber = document.getElementById("txtIdentityNumber").value;
+
+            if (identityNumber != EMPTY_STRING) {
+                POST_DATA2("/Request/HR_View", null, [["ActionName", "DeleteAccountData"], ["IdentityNumber", identityNumber]], function (status) {
+                    if(status == 1)
+                    {
+                        document.getElementById("txtIdentityNumber").value = EMPTY_STRING;
+                        alert("The account data for \"" + identityNumber + "\" has been deleted.");
+                    }
+                });
+            }
+        }
+
+        function DeleteAccount() {
+            let identityNumber = document.getElementById("txtIdentityNumber").value;
+
+            if (identityNumber != EMPTY_STRING) {
+                POST_DATA2("/Request/HR_View", null, [["ActionName", "DeleteAccount"], ["IdentityNumber", identityNumber]], function (status) {
+                    if(status == 1)
+                    {
+                        document.getElementById("txtIdentityNumber").value = EMPTY_STRING;
+                        alert("The account \"" + identityNumber + "\" has been deleted.");
+                    }
+                });
+            }
+        }
+
+    </script>
+
+}
+
+
+<div align="center">
+
+    <div style="width: 600px">
+        <br />
+        <div style="background-color: rgb(35, 35, 35); background-image: radial-gradient(darkred, rgb(35, 35, 35)); border-radius: 16px">
+            <br />
+            <img src="~/images/tools-icon-large.png" height="180" />
+            <br />
+            <br />
+        </div>
+        <div style="height: 2rem"></div>
+
+        <h3 style="background-color: white; width: fit-content">HR Administrative Tools</h3>
+        <br />
+
+        <div align="center" style="width: 500px; background-color: white; border-color: rgb(35, 35, 35); border-style: solid; border-width: 2px">
+            <div style="height: 1rem"></div>
+            <table style="width: 80%">
+                <tr>
+                    <th>Total number of claims:</th>
+                    <td>0</td>
+                </tr>
+                <tr>
+                    <th>Total number of approved claims:</th>
+                    <td>0</td>
+                </tr>
+                <tr>
+                    <th>Total number of rejected claims:</th>
+                    <td>0</td>
+                </tr>
+                <tr>
+                    <th>Total number of pending claims:</th>
+                    <td>0</td>
+                </tr>
+            </table>
+            <div style="height: 1rem"></div>
+        </div>
+        <br />
+
+        <div align="right" style="width: 500px">
+        <button class="button-class button-class-small" onclick="DownloadReport()">Download Report</button>
+        </div>
+        <hr />
+        <h5>Manage Lecturer Account</h5>
+
+        <p>Provide the identity number of the lecturer to manage his/her user account.</p>
+
+        <table cellpadding="4">
+            <tr>
+                <th>Identity Number:</th>
+                <td><input id="txtIdentityNumber" type="text" value="" style="width: 200px" /></td>
+                <th>Action:</th>
+                <td>
+                    <button class="button-class button-class-small button-class-wide" onclick="DeleteAccountData()">Delete Account Data</button>
+                    <div style="height: 0.3rem"></div>
+                    <button class="button-class button-class-small button-class-wide" onclick="DeleteAccount()">Delete Account</button>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>

@@ -78,6 +78,10 @@ body {
     width: 230px;
 }
 
+.button-class-fit-content {
+    width: fit-content;
+}
+
 
 .text-style1 {
     background-color: black;

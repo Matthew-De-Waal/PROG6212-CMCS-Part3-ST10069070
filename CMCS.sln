@@ -5,7 +5,7 @@ VisualStudioVersion = 17.11.35219.272
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CMCS", "CMCS\CMCS.csproj", "{448E088C-DA34-4A36-810A-500092F78242}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CMCS.UnitTests", "CMCS.UnitTests\CMCS.UnitTests.csproj", "{27602E40-9CDF-44BF-B8C0-44C193564369}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CMCS.UnitTests", "CMCS.UnitTests\CMCS.UnitTests.csproj", "{27602E40-9CDF-44BF-B8C0-44C193564369}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -75,6 +75,11 @@ namespace CMCS.Controllers
             return View();
         }
 
+        public async Task<IActionResult> HR_View()
+        {
+            return View();
+        }
+
         /// <summary>
         /// CMCS ManageRequests page.
         /// </summary>
@@ -97,6 +102,9 @@ namespace CMCS.Controllers
 
                 if (this.Request.Headers["ActionName"] == "RejectRequest")
                     await ManageRequests_RejectRequest();
+
+                if (this.Request.Headers["ActionName"] == "ProcessAllRequests")
+                    await ManageRequests_ProcessAllRequests();
             }
 
             // GET method
@@ -935,6 +943,48 @@ namespace CMCS.Controllers
             view.ViewData["LecturerNames"] = lecturerNames.ToArray();
 
             return view;
+        }
+
+
+        [HttpPost]
+        private async Task<IActionResult> ManageRequests_ProcessAllRequests()
+        {
+            string sql = "SELECT * FROM Request";
+            SqlDataReader? reader = await CMCSDB.RunSQLResult(sql);
+            List<int> approvedRequests = new List<int>();
+
+            while(reader != null && reader.Read())
+            {
+                string? sHoursWorked = reader["HoursWorked"].ToString();
+                string? sHourlyRate = reader["HourlyRate"].ToString();
+
+                double hoursWorked = Convert.ToDouble(sHoursWorked);
+                double hourlyRate = Convert.ToDouble(sHourlyRate);
+
+                if(hoursWorked >= 6 && hourlyRate >= 300)
+                {
+                    int requestID = Convert.ToInt32(reader["RequestID"].ToString());
+                    approvedRequests.Add(requestID);
+                }
+            }
+
+            await CMCSDB.CloseReader();
+
+            for(int i = 0; i < approvedRequests.Count; i++)
+            {
+                int requestID = approvedRequests[i];
+
+                string sql2 = $"UPDATE Request SET RequestStatus = 'Approved' WHERE RequestID = {requestID}";
+                await CMCSDB.RunSQLNoResult(sql2);
+
+                int managerID = (await CMCSDB.FindManager(CMCSMain.User.IdentityNumber));
+                string sql3 = $"INSERT INTO RequestProcess(RequestID, ManagerID, Date, Status) VALUES ({requestID}, {managerID}, '{DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss")}', 'Approved')";
+                await CMCSDB.RunSQLNoResult(sql3);
+            }
+
+            this.Response.StatusCode = 1;
+
+            return View();
         }
     }
 }

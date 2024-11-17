@@ -49,10 +49,7 @@
                 document.getElementById("btnViewDocument").disabled = true;
                 document.getElementById("btnDownloadDocument").disabled = true;
 
-                document.getElementById("main-screen").style.position = "absolute";
-                document.getElementById("main-footer").style.position = "fixed";
-                document.getElementById("loading-screen").style.top = ((window.innerHeight / 2) - (window.innerHeight / 4)) + window.scrollY + "px";
-                document.getElementById("loading-screen").hidden = false;
+                showLoadingScreen();
 
                 // Get data from the request.
                 GET_DATA2("/Request/ManageRequests", [["ActionName", "GetRequestData"], ["RequestID", selectedRequestID]], RequestSelected);
@@ -128,6 +125,21 @@
                 // Reload the page.
                 window.location = "/Request/ManageRequests?RequestIndex=" + selectedIndex;
             }
+        }
+
+        function ProcessAllRequests()
+        {
+            showLoadingScreen();
+
+            POST_DATA2("/Request/ManageRequests", null, [["ActionName", "ProcessAllRequests"]], function (status) {
+                if(status == 1)
+                {
+                    hideLoadingScreen();
+
+                    // Reload the page.
+                    window.location.reload();
+                }
+            });
         }
 
         function RequestSelected(request) {
@@ -417,9 +429,21 @@
     <div>
         <br />
         <b>Action: &nbsp;&nbsp;</b>
-        <button id="btnAccept" class="button-class button-class-small" onclick="AcceptRequest()">Accept</button>
-        <button id="btnReject" class="button-class button-class-small" onclick="RejectRequest()">Reject</button>
+        <button class="button-class button-class-small" onclick="AcceptRequest()">Accept</button>
+        <button class="button-class button-class-small" onclick="RejectRequest()">Reject</button> &nbsp; | &nbsp;
+        <button class="button-class button-class-small" onclick="ProcessAllRequests()">Process All</button>
     </div>
 
+    <br />
+    <b>Automated System - Claim Submission Criteria</b>
+    <div align="center">
+    <div align="left" style="width: fit-content">
+    <ul>
+        <li>Each claim must have a minimum of 6 hours worked and R 300 hourly rate.</li>
+        <li>Once the claims have been approved by the automated system, it cannot be undone.<br />
+            You will have to manually approve/reject the claim</li>
+    </ul>
+    </div>
+    </div>
 </div>
 

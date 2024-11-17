@@ -12,7 +12,7 @@
             // Variable Declarations
             let userId = document.getElementById("txtUserID").value;
             let userPassword = document.getElementById("txtPassword").value;
-            
+
             // Post data
             POST_DATA("/UserAccount/UserLogin", JSON.stringify({ "UserId": userId, "Password": userPassword }), UserLoginResult);
         }
@@ -32,6 +32,13 @@
             if(status == 3)
             {
                 window.location = "/Request/ManageRequests";
+            }
+
+
+            // Check if the status is OK and if a manager logged in as HR.
+            if(status == 4)
+            {
+                window.location = "/Request/HR_View";
             }
         }
 

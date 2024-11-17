@@ -39,8 +39,10 @@ namespace CMCS.Controllers
                 var sUserCredentials = await new StreamReader(this.Request.Body).ReadToEndAsync();
                 dynamic? userCredentials = JsonConvert.DeserializeObject(sUserCredentials);
 
+                bool hr_login = Convert.ToString(userCredentials?.UserId).StartsWith("HR");
+
                 // Get the fields from the dynamic object.
-                string? userId = Convert.ToString(userCredentials?.UserId);
+                string? userId = hr_login ? Convert.ToString(userCredentials?.UserId).Replace("HR", string.Empty) : Convert.ToString(userCredentials?.UserId);
                 string? userPassword = Convert.ToString(userCredentials?.Password);
 
                 // Check if the user account exists.
@@ -95,8 +97,16 @@ namespace CMCS.Controllers
                             }
                             else
                             {
-                                // The request succeeded.
-                                this.Response.StatusCode = 3;
+                                if (hr_login)
+                                {
+                                    // The request succeeded.
+                                    this.Response.StatusCode = 4;
+                                }
+                                else
+                                {
+                                    // The request succeeded.
+                                    this.Response.StatusCode = 3;
+                                }
                             }
                         }
                         else

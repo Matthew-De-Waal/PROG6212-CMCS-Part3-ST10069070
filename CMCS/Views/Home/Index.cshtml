@@ -51,7 +51,14 @@
                             {
                                 if (CMCSMain.User.IsManager)
                                 {
-                                    <button class="button-class" onclick="window.location = '/Request/ManageRequests';">Start Now</button>
+                                    if (!CMCSMain.User.HR_Login)
+                                    {
+                                        <button class="button-class" onclick="window.location = '/Request/ManageRequests';">Start Now</button>
+                                    }
+                                    else
+                                    {
+                                        <button class="button-class" onclick="window.location = '/Request/HR_View';">Start Now</button>
+                                    }
                                 }
                                 else
                                 {

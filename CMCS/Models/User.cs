@@ -8,6 +8,7 @@
         public string? IdentityNumber { get; set; }
         public string? EmailAddress { get; set; }
         public bool LoggedOn { get; set; }
-        public bool IsManager { get; set;  }
+        public bool IsManager { get; set; }
+        public bool HR_Login { get; set; }
     }
 }

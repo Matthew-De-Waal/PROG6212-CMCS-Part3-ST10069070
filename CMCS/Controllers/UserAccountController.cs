@@ -39,10 +39,10 @@ namespace CMCS.Controllers
                 var sUserCredentials = await new StreamReader(this.Request.Body).ReadToEndAsync();
                 dynamic? userCredentials = JsonConvert.DeserializeObject(sUserCredentials);
 
-                bool hr_login = Convert.ToString(userCredentials?.UserId).StartsWith("HR");
+                CMCSMain.User.HR_Login = Convert.ToString(userCredentials?.UserId).StartsWith("HR");
 
                 // Get the fields from the dynamic object.
-                string? userId = hr_login ? Convert.ToString(userCredentials?.UserId).Replace("HR", string.Empty) : Convert.ToString(userCredentials?.UserId);
+                string? userId = CMCSMain.User.HR_Login ? Convert.ToString(userCredentials?.UserId).Replace("HR", string.Empty) : Convert.ToString(userCredentials?.UserId);
                 string? userPassword = Convert.ToString(userCredentials?.Password);
 
                 // Check if the user account exists.
@@ -97,7 +97,7 @@ namespace CMCS.Controllers
                             }
                             else
                             {
-                                if (hr_login)
+                                if (CMCSMain.User.HR_Login)
                                 {
                                     // The request succeeded.
                                     this.Response.StatusCode = 4;
@@ -246,6 +246,7 @@ namespace CMCS.Controllers
             CMCSMain.User.IdentityNumber = string.Empty;
             CMCSMain.User.EmailAddress = string.Empty;
             CMCSMain.User.IsManager = false;
+            CMCSMain.User.HR_Login = false;
             CMCSMain.User.LoggedOn = false;
 
             CMCSMain.SelectedRequestIndex = -1;
@@ -828,8 +829,8 @@ namespace CMCS.Controllers
 
                 // The request succeeded.
                 this.Response.StatusCode = 1;
-                this.Response.WriteAsync(JsonConvert.SerializeObject(documentList.ToArray()));
-                this.Response.CompleteAsync();
+                await this.Response.WriteAsync(JsonConvert.SerializeObject(documentList.ToArray()));
+                await this.Response.CompleteAsync();
             }
             else
             {
@@ -866,8 +867,8 @@ namespace CMCS.Controllers
 
                 // The request succeeded.
                 this.Response.StatusCode = 1;
-                this.Response.WriteAsync($"[{filename}]{documentContent}");
-                this.Response.CompleteAsync();
+                await this.Response.WriteAsync($"[{filename}]{documentContent}");
+                await this.Response.CompleteAsync();
             }
             else
             {
@@ -1049,8 +1050,8 @@ namespace CMCS.Controllers
 
             // The request succeeded.
             this.Response.StatusCode = 1;
-            this.Response.WriteAsync(JsonConvert.SerializeObject((object)userAccountData));
-            this.Response.CompleteAsync();
+            await this.Response.WriteAsync(JsonConvert.SerializeObject((object)userAccountData));
+            await this.Response.CompleteAsync();
         }
 
         /// <summary>
@@ -1087,8 +1088,8 @@ namespace CMCS.Controllers
 
                 // The request succeeded.
                 this.Response.StatusCode = 1;
-                this.Response.WriteAsync(securityQuestion);
-                this.Response.CompleteAsync();
+                await this.Response.WriteAsync(securityQuestion);
+                await this.Response.CompleteAsync();
             }
         }
 

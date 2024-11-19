@@ -7,10 +7,13 @@
     <script type="text/javascript">
 
         GET_DATA("/Request/HR_View", [["ActionName", "GetStatistics"]], function (status, response) {
+            // Check if the status is OK.
             if(status == 1)
             {
+                // Create an object using JSON.
                 let statistics = JSON.parse(response);
                 
+                // Assign the data to the form, from the object.
                 document.getElementById("lblClaims").innerHTML = statistics.ClaimCount.toString();
                 document.getElementById("lblApprovedClaims").innerHTML = statistics.ApprovedClaimCount.toString();
                 document.getElementById("lblRejectedClaims").innerHTML = statistics.RejectedClaimCount.toString();
@@ -20,6 +23,7 @@
 
         function DownloadReport() {
             GET_DATA("/Request/HR_View", [["ActionName", "GenerateReport"]], function (status, response) {
+                // Check if the status is OK.
                 if (status == 1) {
                     // Create an html element.
                     let element = document.createElement("a");
@@ -31,13 +35,17 @@
         }
 
         function DeleteAccountData() {
+            // Obtain the lecturer's identity number.
             let identityNumber = document.getElementById("txtIdentityNumber").value;
 
+            // Check if the identity number is not empty.
             if (identityNumber != EMPTY_STRING) {
                 POST_DATA2("/Request/HR_View", null, [["ActionName", "DeleteAccountData"], ["IdentityNumber", identityNumber]], function (status) {
+                    // Check if the status is OK.
                     if(status == 1)
                     {
                         document.getElementById("txtIdentityNumber").value = EMPTY_STRING;
+                        // Show a confirmation dialog.
                         alert("The account data for \"" + identityNumber + "\" has been deleted.");
                     }
                 });
@@ -45,13 +53,17 @@
         }
 
         function DeleteAccount() {
+            // Obtain the lecturer's identity number.
             let identityNumber = document.getElementById("txtIdentityNumber").value;
 
+            // Check if the identity number is not empty.
             if (identityNumber != EMPTY_STRING) {
                 POST_DATA2("/Request/HR_View", null, [["ActionName", "DeleteAccount"], ["IdentityNumber", identityNumber]], function (status) {
+                    // Check if the status is OK.
                     if(status == 1)
                     {
                         document.getElementById("txtIdentityNumber").value = EMPTY_STRING;
+                        // Show a confirmation dialog.
                         alert("The account \"" + identityNumber + "\" has been deleted.");
                     }
                 });
@@ -59,9 +71,7 @@
         }
 
     </script>
-
 }
-
 
 <div align="center">
 

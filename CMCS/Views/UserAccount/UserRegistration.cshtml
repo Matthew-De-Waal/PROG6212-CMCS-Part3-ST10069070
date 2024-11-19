@@ -5,34 +5,38 @@
 @section Scripts {
 
     <script type="text/javascript">
-    
+
         // Variable Declarations
         let qualificationDocuments = [];
         let identityDocuments = [];
+        let queryString = document.location.search;
+        let query = new URLSearchParams(queryString);
 
 
-        if (sessionStorage.getItem("UserAccountType") != EMPTY_STRING) { 
+        if (sessionStorage.getItem("UserAccountType") != EMPTY_STRING) {
             let userAccountType = sessionStorage.getItem("UserAccountType");
 
-            if (userAccountType == "ADMIN") { 
+            if (userAccountType == "ADMIN") {
                 document.getElementById("rdLecturer").checked = false;
                 document.getElementById("rdManager").checked = true;
             }
         }
 
-        if(sessionStorage.getItem("FirstName") != EMPTY_STRING)
-            document.getElementById("txtFirstName").value = sessionStorage.getItem("FirstName");
+        if (query.get("RememberFieldData") == "true") {
+            if (sessionStorage.getItem("FirstName") != EMPTY_STRING)
+                document.getElementById("txtFirstName").value = sessionStorage.getItem("FirstName");
 
-        if (sessionStorage.getItem("LastName") != EMPTY_STRING)
-            document.getElementById("txtLastName").value = sessionStorage.getItem("LastName");
+            if (sessionStorage.getItem("LastName") != EMPTY_STRING)
+                document.getElementById("txtLastName").value = sessionStorage.getItem("LastName");
 
-        if (sessionStorage.getItem("IdentityNumber") != EMPTY_STRING)
-            document.getElementById("txtIdentityNumber").value = sessionStorage.getItem("IdentityNumber");
+            if (sessionStorage.getItem("IdentityNumber") != EMPTY_STRING)
+                document.getElementById("txtIdentityNumber").value = sessionStorage.getItem("IdentityNumber");
 
-        if (sessionStorage.getItem("EmailAddress") != EMPTY_STRING)
-            document.getElementById("txtEmailAddress").value = sessionStorage.getItem("EmailAddress");
+            if (sessionStorage.getItem("EmailAddress") != EMPTY_STRING)
+                document.getElementById("txtEmailAddress").value = sessionStorage.getItem("EmailAddress");
+        }
 
-        function rdLecturer_onclick() { 
+        function rdLecturer_onclick() {
             // Select the 'rdLecturer' radio button.
             document.getElementById("rdLecturer").checked = true;
             document.getElementById("rdManager").checked = false;
@@ -44,7 +48,7 @@
             document.getElementById("rdManager").checked = true;
         }
 
-        function UploadQualificationDocuments() { 
+        function UploadQualificationDocuments() {
             // Create a fileDialog for a user to upload file(s).
             let fileElement = document.createElement("input");
             fileElement.type = "file";
@@ -53,11 +57,11 @@
             // Perform a click operation.
             fileElement.click();
 
-            fileElement.onchange = function() {
+            fileElement.onchange = function () {
                 let list = [];
 
-                for (let i = 0; i < fileElement.files.length; i++) { 
-                    if (fileElement.files[i].size <= MAX_FILE_SIZE_LIMIT) { 
+                for (let i = 0; i < fileElement.files.length; i++) {
+                    if (fileElement.files[i].size <= MAX_FILE_SIZE_LIMIT) {
                         list[list.length] = fileElement.files[i];
                     }
                 }
@@ -79,8 +83,8 @@
             fileElement.onchange = function () {
                 let list = [];
 
-                for (let i = 0; i < fileElement.files.length; i++) { 
-                    if (fileElement.files[i].size <= MAX_FILE_SIZE_LIMIT) { 
+                for (let i = 0; i < fileElement.files.length; i++) {
+                    if (fileElement.files[i].size <= MAX_FILE_SIZE_LIMIT) {
                         list[list.length] = fileElement.files[i];
                     }
                 }
@@ -105,8 +109,7 @@
                 // Set the user account type to 'STANDARD' (Lecturer).
                 userAccountType = "STANDARD";
             }
-            else
-            {
+            else {
                 // Set the user account type to 'ADMIN' (Manager).
                 userAccountType = "ADMIN";
             }
@@ -125,7 +128,6 @@
             sessionStorage.setItem("IdentityNumber", userIdentityNumber);
             sessionStorage.setItem("EmailAddress", userEmailAddress);
 
-
             // Validation process
             let validation = userFirstName.length > 0 &&
                 userLastName.length > 0 &&
@@ -138,10 +140,7 @@
 
             if (validation) {
                 // Show the loading screen if the webpage is taking long to respond.
-                document.getElementById("main-screen").style.position = "absolute";
-                document.getElementById("main-footer").style.position = "fixed";
-                document.getElementById("loading-screen").style.top = ((window.innerHeight / 2) - (window.innerHeight / 4)) + window.scrollY + "px";
-                document.getElementById("loading-screen").hidden = false;
+                showLoadingScreen();
 
                 // Declare and instantiate an anonymous object.
                 let userData = new Object();
@@ -198,44 +197,37 @@
                     }
                 }, 1000);
             }
-            else
-            {
+            else {
                 RegistrationSubmitted(2);
             }
         }
 
         function RegistrationSubmitted(status) {
-            document.getElementById("main-screen").style.position = "relative";
-            document.getElementById("main-footer").style.position = EMPTY_STRING;
-            document.getElementById("loading-screen").hidden = true;
+            hideLoadingScreen();
 
             // Obtain data from the form.
             let isLecturer = document.getElementById("rdLecturer").checked;
-            
+
             // Check if the status is OK.
-            if(status == 1)
-            {
+            if (status == 1) {
                 let userId = document.getElementById("txtIdentityNumber").value;
                 window.location = "/Home/Status?ActionName=RegisterUser&Status=Success&UserId=" + userId + "&Role=" + (isLecturer ? "Lecturer" : "Manager");
             }
 
             // Check if the operation failed.
-            if(status == 2)
-            {
+            if (status == 2) {
                 window.location = "/Home/Status?ActionName=RegisterUser&Status=Failed&Role=" + (isLecturer ? "Lecturer" : "Manager");
             }
         }
 
-        function checkPassword()
-        {
+        function checkPassword() {
             let password = document.getElementById("txtPassword").value;
             let passwordConfirmed = document.getElementById("txtPasswordConfirmed").value;
 
-            if (password != passwordConfirmed) { 
+            if (password != passwordConfirmed) {
                 document.getElementById("lblMessage").innerHTML = "Warning: The two passwords do not match!";
             }
-            else
-            {
+            else {
                 document.getElementById("lblMessage").innerHTML = EMPTY_STRING;
             }
         }

@@ -105,7 +105,7 @@ namespace CMCS.UnitTests
             string dateSubmitted = DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss");
             int lecturerId = await CMCSDB.FindLecturer("11102");
 
-            string sql = $"INSERT INTO Request(RequestFor, HoursWorked, HourlyRate, Description, DateSubmitted, RequestStatus, LecturerID) VALUES ('{requestFor}', '{hoursWorked}', '{hourlyRate}', '{description}', '{dateSubmitted}', 'Pending', {lecturerId})";
+            string sql = $"INSERT INTO Request(RequestFor, HoursWorked, HourlyRate, Description, DateSubmitted, RequestStatus, LecturerID) VALUES ('{requestFor}', {hoursWorked}, {hourlyRate}, '{description}', '{dateSubmitted}', 'Pending', {lecturerId})";
             // Run the SQL query.
             await CMCSDB.RunSQLNoResult(sql);
 

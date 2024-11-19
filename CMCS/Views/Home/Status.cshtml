@@ -252,7 +252,7 @@
         // RegisterUser: Failed
         if (this.Context.Request.Query["ActionName"] == "RegisterUser" && this.Context.Request.Query["Status"] == "Failed")
         {
-            <button class="button-class button-class-small" onclick="window.location = '/UserAccount/UserRegistration'">Try Again</button>
+            <button class="button-class button-class-small" onclick="window.location = '/UserAccount/UserRegistration?RememberFieldData=true'">Try Again</button>
         }
 
         // UserLogin: Failed

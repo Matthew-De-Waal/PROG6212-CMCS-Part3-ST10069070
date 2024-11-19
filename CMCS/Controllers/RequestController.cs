@@ -81,6 +81,10 @@ namespace CMCS.Controllers
             return View();
         }
 
+        /// <summary>
+        /// CMCS HR Adminstrative Tools page.
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
         [HttpPost]
         public async Task<IActionResult> HR_View()
@@ -106,52 +110,72 @@ namespace CMCS.Controllers
             return View();
         }
 
+        /// <summary>
+        /// This method is part of the 'HR_View' method.
+        /// </summary>
+        /// <returns></returns>
         private async Task HR_View_GenerateReport()
         {
             // Open the database connection
             await CMCSDB.OpenConnection();
 
+            // Count the number of claims from the database.
             string sql1 = $"SELECT * FROM Request";
             int claimCount = await CMCSDB.CountRows(sql1);
 
+            // Count the number of approved claims from the database.
             string sql2 = $"SELECT * FROM Request WHERE RequestStatus = 'Approved'";
             int approvedClaimCount = await CMCSDB.CountRows(sql2);
 
+            // Count the number of rejected claims from the database.
             string sql3 = $"SELECT * FROM Request WHERE RequestStatus = 'Rejected'";
             int rejectedClaimCount = await CMCSDB.CountRows(sql3);
 
+            // Count the number of pending claims from the database.
             string sql4 = $"SELECT * FROM Request WHERE RequestStatus = 'Pending'";
             int pendingClaimCount = await CMCSDB.CountRows(sql4);
 
             // Close the database connection.
             await CMCSDB.CloseConnection();
 
-            // Declarations
+            // Declare and instantiate a PdfDocument object.
             PdfDocument document = new PdfDocument();
             PdfPage page = document.AddPage();
 
+            // Page dimensions
             const int PAGE_WIDTH = 595;
             const int PAGE_HEIGHT = 842;
 
+            // Assign the page dimensions to the 'page' object.
             page.Width = new XUnit(PAGE_WIDTH);
             page.Height = new XUnit(PAGE_HEIGHT);
 
+            // Declare and instantiate an XGraphics object.
             XGraphics graphics = XGraphics.FromPdfPage(page);
 
+            // Obtain the logo from the resources.
             string? base64Logo = _configuration?.GetSection("Base64Resources").GetValue<string>("Logo");
+            // Convert the logo's content to bytes.
             byte[] logo_bytes = Convert.FromBase64String(base64Logo);
+
+            // Declare and instantiate a MemoryStream object.
             MemoryStream stream = new MemoryStream();
+            // Write the content of the logo to the stream.
             stream.Write(logo_bytes, 0, logo_bytes.Length);
+            // Declare and instantiate an XImage object from the stream.
             XImage logo = XImage.FromStream(stream);
 
+            // Logo dimensions.
             int logo_dest_width = 150;
             int logo_dest_height = 150;
 
+            // Declarations
             XPen pen1 = new XPen(XColor.FromArgb(0, 0, 0), 1);
             XSolidBrush brush1 = new XSolidBrush(XColor.FromArgb(0, 0, 0));
             XFont heading_font = new XFont("Arial", 20);
             XFont text_font = new XFont("Arial", 12);
 
+            // Drawing operations.
             graphics.DrawImage(logo, (PAGE_WIDTH / 2) - (logo_dest_width / 2), 30, logo_dest_width, logo_dest_height);
             graphics.DrawString("Contract Monthly Claim System", heading_font, brush1, (PAGE_WIDTH / 2) - 140, 220);
             graphics.DrawString("Claim Processing Report", text_font, brush1, (PAGE_WIDTH / 2) - 70, 240);
@@ -170,9 +194,12 @@ namespace CMCS.Controllers
 
             // Generate output
             MemoryStream outputStream = new MemoryStream();
+            // Save the pdf document to the output stream.
             document.Save(outputStream);
+            // Close the pdf document.
             document.Close();
 
+            // Convert the content of the output stream to base64 content.
             string base64_content = Convert.ToBase64String(outputStream.ToArray());
 
             // The request succeeded.
@@ -183,6 +210,7 @@ namespace CMCS.Controllers
 
         private async Task HR_View_DeleteAccountData()
         {
+            // Open the database connection.
             await CMCSDB.OpenConnection();
 
             string? identityNumber = this.Request.Headers["IdentityNumber"];
@@ -194,8 +222,10 @@ namespace CMCS.Controllers
                 List<int> requestList = new List<int>();
 
                 string sql = $"SELECT * FROM Request WHERE LecturerID = {lecturerId}";
+                // Create a SqlDataReader object.
                 SqlDataReader? reader = await CMCSDB.RunSQLResult(sql);
 
+                // Loop through the result set.
                 while(reader != null && reader.Read())
                 {
                     string? sRequestID = reader["RequestID"].ToString();
@@ -203,6 +233,7 @@ namespace CMCS.Controllers
                     requestList.Add(iRequestID);
                 }
 
+                // Iterate through the requestList collection.
                 for(int i = 0; i < requestList.Count; i++)
                 {
                     int requestId = requestList[i];
@@ -211,12 +242,14 @@ namespace CMCS.Controllers
                     string sql_delete2 = $"DELETE FROM RequestDocument WHERE RequestID = {requestId}";
                     string sql_delete3 = $"DELETE FROM RequestProcess WHERE RequestID = {requestId}";
 
+                    // Run SQL queries.
                     await CMCSDB.RunSQLNoResult(sql_delete1);
                     await CMCSDB.RunSQLNoResult(sql_delete2);
                     await CMCSDB.RunSQLNoResult(sql_delete3);
                 }
 
                 string sql2 = $"DELETE FROM Document WHERE UserID = '{identityNumber}' AND Section = 'REQUEST'";
+                // Run the SQL query.
                 await CMCSDB.RunSQLNoResult(sql2);
 
                 // The request succeeded.
@@ -228,11 +261,13 @@ namespace CMCS.Controllers
                 this.Response.StatusCode = 2;
             }
 
+            // Close the database connection.
             await CMCSDB.CloseConnection();
         }
 
         private async Task HR_View_DeleteAccount()
         {
+            // Open the database connection.
             await CMCSDB.OpenConnection();
 
             string? identityNumber = this.Request.Headers["IdentityNumber"];
@@ -244,8 +279,10 @@ namespace CMCS.Controllers
                 List<int> requestList = new List<int>();
 
                 string sql = $"SELECT * FROM Request WHERE LecturerID = {lecturerId}";
+                // Create a SqlDataReader object.
                 SqlDataReader? reader = await CMCSDB.RunSQLResult(sql);
 
+                // Loop through the result set.
                 while (reader != null && reader.Read())
                 {
                     string? sRequestID = reader["RequestID"].ToString();
@@ -253,8 +290,10 @@ namespace CMCS.Controllers
                     requestList.Add(iRequestID);
                 }
 
+                // Close the SqlDataReader object.
                 await CMCSDB.CloseReader();
 
+                // Iterate through the requestList collection.
                 for (int i = 0; i < requestList.Count; i++)
                 {
                     int requestId = requestList[i];
@@ -263,15 +302,18 @@ namespace CMCS.Controllers
                     string sql_delete2 = $"DELETE FROM RequestDocument WHERE RequestID = {requestId}";
                     string sql_delete3 = $"DELETE FROM RequestProcess WHERE RequestID = {requestId}";
 
+                    // Run SQL queries.
                     await CMCSDB.RunSQLNoResult(sql_delete1);
                     await CMCSDB.RunSQLNoResult(sql_delete2);
                     await CMCSDB.RunSQLNoResult(sql_delete3);
                 }
 
                 string sql2 = $"DELETE FROM Document WHERE UserID = '{identityNumber}'";
+                // Run the SQL query.
                 await CMCSDB.RunSQLNoResult(sql2);
 
                 string sql3 = $"DELETE FROM Lecturer WHERE LecturerID = {lecturerId}";
+                // Run the SQL query.
                 await CMCSDB.RunSQLNoResult(sql3);
 
                 // The request succeeded.
@@ -283,25 +325,32 @@ namespace CMCS.Controllers
                 this.Response.StatusCode = 2;
             }
 
+            // Close the database connection.
             await CMCSDB.CloseConnection();
         }
 
         private async Task HR_View_GetStatistics()
         {
+            // Open the database connection.
             await CMCSDB.OpenConnection();
 
             string sql1 = $"SELECT * FROM Request";
+            // Count the number of claims.
             int claimCount = await CMCSDB.CountRows(sql1);
 
             string sql2 = $"SELECT * FROM Request WHERE RequestStatus = 'Approved'";
+            // Count the number of approved claims.
             int approvedClaimCount = await CMCSDB.CountRows(sql2);
 
             string sql3 = $"SELECT * FROM Request WHERE RequestStatus = 'Rejected'";
+            // Count the number of rejected claims.
             int rejectedClaimCount = await CMCSDB.CountRows(sql3);
 
             string sql4 = $"SELECT * FROM Request WHERE RequestStatus = 'Pending'";
+            // Count the number of pending claims.
             int pendingClaimCount = await CMCSDB.CountRows(sql4);
 
+            // Create a dynamic object.
             dynamic statistics = new
             {
                 ClaimCount = claimCount,
@@ -310,10 +359,12 @@ namespace CMCS.Controllers
                 PendingClaimCount = pendingClaimCount
             };
 
+            // The request succeeded.
             this.Response.StatusCode = 1;
             await this.Response.WriteAsync(JsonConvert.SerializeObject((object?)statistics));
             await this.Response.CompleteAsync();
 
+            // Close the database connection.
             await CMCSDB.CloseConnection();
         }
 
@@ -1183,13 +1234,20 @@ namespace CMCS.Controllers
         }
 
 
+        /// <summary>
+        /// This method is part of the 'ManageRequests' method.
+        /// </summary>
+        /// <returns></returns>
         [HttpPost]
-        private async Task<IActionResult> ManageRequests_ProcessAllRequests()
+        private async Task ManageRequests_ProcessAllRequests()
         {
             string sql = "SELECT * FROM Request";
+            // Create a SqlDataReader object.
             SqlDataReader? reader = await CMCSDB.RunSQLResult(sql);
+            // Declare and instantiate a generic collection of type 'int'.
             List<int> approvedRequests = new List<int>();
 
+            // Loop through the result set.
             while(reader != null && reader.Read())
             {
                 string? sHoursWorked = reader["HoursWorked"].ToString();
@@ -1198,30 +1256,35 @@ namespace CMCS.Controllers
                 double hoursWorked = Convert.ToDouble(sHoursWorked);
                 double hourlyRate = Convert.ToDouble(sHourlyRate);
 
+                // Check if the hours worked and hourly rate matches the predefined criteria.
                 if(hoursWorked >= 6 && hourlyRate >= 300)
                 {
                     int requestID = Convert.ToInt32(reader["RequestID"].ToString());
+                    // Add the requestID to the approvedRequests collection.
                     approvedRequests.Add(requestID);
                 }
             }
 
+            // Close the SqlDataReader object.
             await CMCSDB.CloseReader();
 
+            // Iterate through the approvedRequests collection.
             for(int i = 0; i < approvedRequests.Count; i++)
             {
                 int requestID = approvedRequests[i];
 
                 string sql2 = $"UPDATE Request SET RequestStatus = 'Approved' WHERE RequestID = {requestID}";
+                // Run the SQL query.
                 await CMCSDB.RunSQLNoResult(sql2);
 
                 int managerID = (await CMCSDB.FindManager(CMCSMain.User.IdentityNumber));
                 string sql3 = $"INSERT INTO RequestProcess(RequestID, ManagerID, Date, Status) VALUES ({requestID}, {managerID}, '{DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss")}', 'Approved')";
+                // Run the SQL query.
                 await CMCSDB.RunSQLNoResult(sql3);
             }
 
+            // The request succeeded.
             this.Response.StatusCode = 1;
-
-            return View();
         }
     }
 }

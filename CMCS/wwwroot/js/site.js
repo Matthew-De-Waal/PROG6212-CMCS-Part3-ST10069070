@@ -167,6 +167,7 @@ function round_off_to_mb(value) {
     return (value / 1000000).toFixed(2);
 }
 
+// Shows the loading screen to the user.
 function showLoadingScreen() {
     document.getElementById("main-screen").style.position = "absolute";
     document.getElementById("main-footer").style.position = "fixed";
@@ -174,6 +175,7 @@ function showLoadingScreen() {
     document.getElementById("loading-screen").hidden = false;
 }
 
+// Hides the loading screen from the user.
 function hideLoadingScreen() {
     document.getElementById("main-screen").style.position = "relative";
     document.getElementById("main-footer").style.position = EMPTY_STRING;

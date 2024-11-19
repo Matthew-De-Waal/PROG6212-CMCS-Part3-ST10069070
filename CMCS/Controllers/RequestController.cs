@@ -233,8 +233,11 @@ namespace CMCS.Controllers
                     requestList.Add(iRequestID);
                 }
 
+                // Close the SqlDataReader object.
+                await CMCSDB.CloseReader();
+
                 // Iterate through the requestList collection.
-                for(int i = 0; i < requestList.Count; i++)
+                for (int i = 0; i < requestList.Count; i++)
                 {
                     int requestId = requestList[i];
 

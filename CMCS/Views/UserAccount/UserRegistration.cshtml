@@ -12,17 +12,16 @@
         let queryString = document.location.search;
         let query = new URLSearchParams(queryString);
 
-
-        if (sessionStorage.getItem("UserAccountType") != EMPTY_STRING) {
-            let userAccountType = sessionStorage.getItem("UserAccountType");
-
-            if (userAccountType == "ADMIN") {
-                document.getElementById("rdLecturer").checked = false;
-                document.getElementById("rdManager").checked = true;
-            }
-        }
-
         if (query.get("RememberFieldData") == "true") {
+            if (sessionStorage.getItem("UserAccountType") != EMPTY_STRING) {
+                let userAccountType = sessionStorage.getItem("UserAccountType");
+
+                if (userAccountType == "ADMIN") {
+                    document.getElementById("rdLecturer").checked = false;
+                    document.getElementById("rdManager").checked = true;
+                }
+            }
+
             if (sessionStorage.getItem("FirstName") != EMPTY_STRING)
                 document.getElementById("txtFirstName").value = sessionStorage.getItem("FirstName");
 

@@ -6,6 +6,18 @@
 
     <script type="text/javascript">
 
+        GET_DATA("/Request/HR_View", [["ActionName", "GetStatistics"]], function (status, response) {
+            if(status == 1)
+            {
+                let statistics = JSON.parse(response);
+                
+                document.getElementById("lblClaims").innerHTML = statistics.ClaimCount.toString();
+                document.getElementById("lblApprovedClaims").innerHTML = statistics.ApprovedClaimCount.toString();
+                document.getElementById("lblRejectedClaims").innerHTML = statistics.RejectedClaimCount.toString();
+                document.getElementById("lblPendingClaims").innerHTML = statistics.PendingClaimCount.toString();
+            }
+        });
+
         function DownloadReport() {
             GET_DATA("/Request/HR_View", [["ActionName", "GenerateReport"]], function (status, response) {
                 if (status == 1) {
@@ -71,19 +83,19 @@
             <table style="width: 80%">
                 <tr>
                     <th>Total number of claims:</th>
-                    <td>0</td>
+                    <td><span id="lblClaims">0</span></td>
                 </tr>
                 <tr>
                     <th>Total number of approved claims:</th>
-                    <td>0</td>
+                    <td><span id="lblApprovedClaims">0</span></td>
                 </tr>
                 <tr>
                     <th>Total number of rejected claims:</th>
-                    <td>0</td>
+                    <td><span id="lblRejectedClaims">0</span></td>
                 </tr>
                 <tr>
                     <th>Total number of pending claims:</th>
-                    <td>0</td>
+                    <td><span id="lblPendingClaims">0</span></td>
                 </tr>
             </table>
             <div style="height: 1rem"></div>

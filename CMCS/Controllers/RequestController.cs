@@ -86,14 +86,20 @@ namespace CMCS.Controllers
         {
             if (this.Request.Method == "POST")
             {
-                if (this.Request.Headers["ActionName"] == "GenerateReport")
-                    HR_View_GenerateReport();
-
                 if (this.Request.Headers["ActionName"] == "DeleteAccountData")
                     await HR_View_DeleteAccountData();
 
                 if (this.Request.Headers["ActionName"] == "DeleteAccount")
                     await HR_View_DeleteAccount();
+            }
+
+            if (this.Request.Method == "GET")
+            {
+                if (this.Request.Headers["ActionName"] == "GenerateReport")
+                    HR_View_GenerateReport();
+
+                if (this.Request.Headers["ActionName"] == "GetStatistics")
+                    await HR_View_GetStatistics();
             }
 
             return View();
@@ -234,6 +240,37 @@ namespace CMCS.Controllers
                 // The request failed.
                 this.Response.StatusCode = 2;
             }
+
+            await CMCSDB.CloseConnection();
+        }
+
+        private async Task HR_View_GetStatistics()
+        {
+            await CMCSDB.OpenConnection();
+
+            string sql1 = $"SELECT * FROM Request";
+            int claimCount = await CMCSDB.CountRows(sql1);
+
+            string sql2 = $"SELECT * FROM Request WHERE RequestStatus = 'Approved'";
+            int approvedClaimCount = await CMCSDB.CountRows(sql2);
+
+            string sql3 = $"SELECT * FROM Request WHERE RequestStatus = 'Rejected'";
+            int rejectedClaimCount = await CMCSDB.CountRows(sql3);
+
+            string sql4 = $"SELECT * FROM Request WHERE RequestStatus = 'Pending'";
+            int pendingClaimCount = await CMCSDB.CountRows(sql4);
+
+            dynamic statistics = new
+            {
+                ClaimCount = claimCount,
+                ApprovedClaimCount = approvedClaimCount,
+                RejectedClaimCount = rejectedClaimCount,
+                PendingClaimCount = pendingClaimCount
+            };
+
+            this.Response.StatusCode = 1;
+            await this.Response.WriteAsync(JsonConvert.SerializeObject((object?)statistics));
+            await this.Response.CompleteAsync();
 
             await CMCSDB.CloseConnection();
         }

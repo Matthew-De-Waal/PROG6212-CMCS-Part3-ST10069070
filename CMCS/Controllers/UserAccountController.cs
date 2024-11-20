@@ -456,7 +456,7 @@ namespace CMCS.Controllers
                             AccountRecovery recovery = _context.AccountRecovery.Where(i => i.Method == "FILE" && i.UserID == CMCSMain.User.IdentityNumber).ToList()[0];
                             recovery.Value = key;
                             
-                            _context.Update(recovery);
+                            _context.AccountRecovery.Update(recovery);
                             await _context.SaveChangesAsync();
                         }
                     }
@@ -467,7 +467,7 @@ namespace CMCS.Controllers
 
                     if (result.Count > 0)
                     {
-                        _context.Remove(result[0]);
+                        _context.AccountRecovery.Remove(result[0]);
                         await _context.SaveChangesAsync();
                     }
                 }
@@ -475,7 +475,7 @@ namespace CMCS.Controllers
                 // Check if 'Recovery Method 2' is enabled.
                 if (recoveryMethod2Enabled)
                 {
-                    bool success = (await _context.AccountRecovery.Where(i => i.UserID == CMCSMain.User.IdentityNumber && i.Method == "FILE").ToListAsync()).Count > 0;
+                    bool success = _context.AccountRecovery.Where(i => i.UserID == CMCSMain.User.IdentityNumber && i.Method == "QUESTION").ToList().Count > 0;
 
                     // Check if the reader cannot read data.
                     if (!success)
@@ -485,7 +485,7 @@ namespace CMCS.Controllers
                         recovery.Value = $"{securityQuestion};{securityAnswer}";
                         recovery.UserID = CMCSMain.User.IdentityNumber;
 
-                        await _context.AddAsync(recovery);
+                        _context.AccountRecovery.Add(recovery);
                         await _context.SaveChangesAsync();
                     }
                     else
@@ -493,7 +493,7 @@ namespace CMCS.Controllers
                         AccountRecovery recovery = _context.AccountRecovery.Where(i => i.Method == "QUESTION" && i.UserID == CMCSMain.User.IdentityNumber).ToList()[0];
                         recovery.Value = $"{securityQuestion};{securityAnswer}";
 
-                        _context.Update(recovery);
+                        _context.AccountRecovery.Update(recovery);
                         await _context.SaveChangesAsync();
                     }
                 }
@@ -503,7 +503,7 @@ namespace CMCS.Controllers
 
                     if (result.Count > 0)
                     {
-                        _context.Remove(result[0]);
+                        _context.AccountRecovery.Remove(result[0]);
                         await _context.SaveChangesAsync();
                     }
                 }

@@ -2,6 +2,7 @@
 
 namespace CMCS_WebAPI.Models
 {
+    // This class represents the Document entity within the database.
     public class Document
     {
         // Automatic Properties

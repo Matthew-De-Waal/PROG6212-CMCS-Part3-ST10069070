@@ -91,224 +91,416 @@ namespace CMCS_WebAPI.Controllers
 
         // ------------------ HTTP POST ------------------
 
+        /// <summary>
+        /// Adds a recovery method to a lecturer or manager account.
+        /// </summary>
+        /// <param name="type">Can be either 'FILE' or 'QUESTION'</param>
+        /// <param name="identityNumber">The identity number of the lecturer or manager</param>
+        /// <param name="value">
+        /// If the recovery type is 'FILE' then the value is the recovery key.
+        /// If the recovery type is 'QUESTION' then the value is the security question and the security answer
+        /// separated by a semicolon. For example, the security question is 'What is my favourite food?' and
+        /// the security answer is 'Chicken and Chips'. The value will be 'What is my favourite food?;Chicken and Chips'.
+        /// </param>
+        /// <returns></returns>
         [Route("api/Database/AddRecoveryMethod")]
         [HttpPost]
         public async Task<ActionResult> AddRecoveryMethod(string type, string identityNumber, string value)
         {
+            // Check if the recovery method is 'FILE'.
             if (type == "FILE")
             {
+                // Declare and instantiate an AccountRecovery object.
                 AccountRecovery recovery = new AccountRecovery();
                 recovery.Method = "FILE";
                 recovery.UserID = identityNumber;
                 recovery.Value = value;
 
+                // Add the data to the AccountRecovery table.
                 _dbContext.AccountRecovery.Add(recovery);
+                // Save the changes asynchronously.
                 await _dbContext.SaveChangesAsync();
 
                 return Ok();
             }
 
+            // Check if the recovery method is 'QUESTION'.
             if (type == "QUESTION")
             {
+                // Declare and instantiate an AccountRecovery object.
                 AccountRecovery recovery = new AccountRecovery();
                 recovery.Method = "QUESTION";
                 recovery.UserID = identityNumber;
                 recovery.Value = value;
 
+                // Add the data to the AccountRecovery table.
                 _dbContext.AccountRecovery.Add(recovery);
+                // Save the changes asynchronously.
                 await _dbContext.SaveChangesAsync();
 
+                // The operation succeeded.
                 return Ok();
             }
 
+            // The operation failed.
             return BadRequest();
         }
 
+        /// <summary>
+        /// Removes a recovery method from a lecturer or manager account
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="identityNumber"></param>
+        /// <returns></returns>
         [Route("api/Database/RemoveRecoveryMethod")]
         [HttpPost]
         public async Task<ActionResult> RemoveRecoveryMethod(string type, string identityNumber)
         {
-            int index = -1;
-            AccountRecovery[] list = _dbContext.AccountRecovery.ToArray();
+            // Declare an AccountRecovery object.
+            AccountRecovery? recovery = null;
+            // Read data from the AccountRecovery table.
+            AccountRecovery[] collection = _dbContext.AccountRecovery.Where(i => i.Method == type && i.UserID == identityNumber).ToArray();
 
-            for (int i = 0; i < list.Length; i++)
+            // Check if the size of the collection is zero.
+            if(collection.Length == 0)
             {
-                if (list[i].UserID == identityNumber && list[i].Method == type)
-                {
-                    index = i;
-                    break;
-                }
+                // The operation failed.
+                return BadRequest();
             }
 
-            if(index != -1)
-            {
-                _dbContext.AccountRecovery.Remove(list[index]);
-                await _dbContext.SaveChangesAsync();
+            // Get the first element from the collection.
+            recovery = collection[0];
 
-                return Ok();
-            }
+            // Remove the data from the AccountRecovery table.
+            _dbContext.AccountRecovery.Remove(recovery);
+            // Save the changes asynchronously.
+            await _dbContext.SaveChangesAsync();
 
-            return BadRequest();
+            // The operation succeeded.
+            return Ok();
         }
 
+        /// <summary>
+        /// Approves a claim.
+        /// </summary>
+        /// <param name="requestId"></param>
+        /// <returns></returns>
         [Route("api/Database/ApproveRequest")]
         [HttpPost]
-        public async Task<ActionResult> ApproveRequest(Request request)
+        public async Task<ActionResult> ApproveRequest(int requestId)
         {
+            // Variable Declarations
             int managerID = 0;
             Manager[] managers = _dbContext.Manager.ToArray();
 
+            // Check if the size of the array is greater than zero.
             if (managers.Length > 0)
             {
                 managerID = managers[0].ManagerID;
             }
             else
+                // The operation failed.
                 return BadRequest();
 
-
+            // Create a Request object.
+            Request request = _dbContext.Request.Where(i => i.RequestID == requestId).ToArray()[0];
             request.RequestStatus = "Approved";
+
+            // Update the data within the Request table.
             _dbContext.Request.Update(request);
+            // Save the changes asynchronously.
             await _dbContext.SaveChangesAsync();
 
+            // Declare and instantiate a RequestProcess object.
             RequestProcess process = new RequestProcess();
             process.RequestID = request.RequestID;
             process.ManagerID = managerID;
             process.Status = "Approved";
             process.Date = DateTime.Now;
 
+            // Add the RequestProcess object to the RequestProcess table.
             _dbContext.RequestProcess.Add(process);
+            // Save the changes asynchronously.
             await _dbContext.SaveChangesAsync();
 
+            // The operation succeeded.
             return Ok();
         }
 
+        /// <summary>
+        /// Rejects a claim
+        /// </summary>
+        /// <param name="requestId"></param>
+        /// <returns></returns>
         [Route("api/Database/RejectRequest")]
         [HttpPost]
-        public async Task<ActionResult> RejectRequest(Request request)
+        public async Task<ActionResult> RejectRequest(int requestId)
         {
+            // Variable Declarations
             int managerID = 0;
             Manager[] managers = _dbContext.Manager.ToArray();
 
+            // Check if the size of the array is greater than zero.
             if (managers.Length > 0)
             {
                 managerID = managers[0].ManagerID;
             }
             else
+                // The operation failed.
                 return BadRequest();
 
-
+            // Create a Request object.
+            Request request = _dbContext.Request.Where(i => i.RequestID == requestId).ToArray()[0];
             request.RequestStatus = "Rejected";
+
+            // Update the data within the Request table.
             _dbContext.Request.Update(request);
+            // Save the changes asynchronously.
             await _dbContext.SaveChangesAsync();
 
+            // Declare and instantiate a RequestProcess object.
             RequestProcess process = new RequestProcess();
             process.RequestID = request.RequestID;
             process.ManagerID = managerID;
             process.Status = "Rejected";
             process.Date = DateTime.Now;
 
+            // Add the RequestProcess object to the RequestProcess table.
             _dbContext.RequestProcess.Add(process);
+            // Save the changes asynchronously.
             await _dbContext.SaveChangesAsync();
 
+            // The operation succeeded.
             return Ok();
         }
 
+        /// <summary>
+        /// Processes all the claims against a predefined criteria, using the automated system.
+        /// </summary>
+        /// <returns></returns>
         [Route("api/Database/ProcessAllRequests")]
         [HttpPost]
         public async Task<ActionResult> ProcessAllRequests()
         {
+            // Variable Declarations
             int managerID = 0;
             Manager[] managers = _dbContext.Manager.ToArray();
 
+            // Check if the size of the array is greater than zero.
             if (managers.Length > 0)
             {
                 managerID = managers[0].ManagerID;
             }
             else
+                // The operation failed.
                 return BadRequest();
 
-            Request[] requests = _dbContext.Request.ToArray();
+            // Obtain an array of type 'Request'.
+            Request[] requests = _dbContext.Request.Where(i => i.HoursWorked >= 6 && i.HourlyRate >= 300).ToArray();
 
+            // Iterate through the collection.
             for (int i = 0; i < requests.Length; i++)
             {
-                if (requests[i].HoursWorked >= 6 && requests[i].HourlyRate >= 300)
-                {
-                    requests[i].RequestStatus = "Approved";
-                    _dbContext.Request.Update(requests[i]);
-                }
+                requests[i].RequestStatus = "Approved";
+                _dbContext.Request.Update(requests[i]);
             }
 
+            // Save the changes asynchronously.
             await _dbContext.SaveChangesAsync();
 
+            // Iterate through the collection.
             for (int i = 0; i < requests.Length; i++)
             {
-                if (requests[i].HoursWorked >= 6 && requests[i].HourlyRate >= 300)
-                {
-                    RequestProcess process = new RequestProcess();
-                    process.RequestID = requests[i].RequestID;
-                    process.ManagerID = managerID;
-                    process.Status = "Approved";
-                    process.Date = DateTime.Now;
+                // Declare and instantiate a RequestProcess object.
+                RequestProcess process = new RequestProcess();
+                process.RequestID = requests[i].RequestID;
+                process.ManagerID = managerID;
+                process.Status = "Approved";
+                process.Date = DateTime.Now;
 
-                    _dbContext.RequestProcess.Add(process);
-                }
+                // Add the RequestProcess object to the RequestProcess table.
+                _dbContext.RequestProcess.Add(process);
             }
 
+            // Save the changes asynchronously.
             await _dbContext.SaveChangesAsync();
 
+            // The operation succeeded.
             return Ok();
         }
 
         // ------------------ HTTP PUT ------------------
 
+        /// <summary>
+        /// Updates a lecturer's account.
+        /// </summary>
+        /// <param name="lecturerId"></param>
+        /// <param name="firstName"></param>
+        /// <param name="lastName"></param>
+        /// <param name="identityNumber"></param>
+        /// <param name="emailAddress"></param>
+        /// <returns></returns>
         [Route("api/Database/UpdateLecturerAccount")]
         [HttpPut]
-        public async Task<ActionResult> UpdateLecturerAccount(Lecturer lecturer)
+        public async Task<ActionResult> UpdateLecturerAccount(int lecturerId, string firstName, string lastName, string identityNumber, string emailAddress)
         {
-            _dbContext.Lecturer.Update(lecturer);
-            await _dbContext.SaveChangesAsync();
+            try
+            {
+                // Obtain the lecturer object.
+                Lecturer lecturer = _dbContext.Lecturer.Where(i => i.LecturerID == lecturerId).ToArray()[0];
 
-            return Ok();
+                // Update the fields.
+                lecturer.FirstName = firstName;
+                lecturer.LastName = lastName;
+                lecturer.IdentityNumber = identityNumber;
+                lecturer.EmailAddress = emailAddress;
+
+                // Update the Lecturer table.
+                _dbContext.Lecturer.Update(lecturer);
+                // Save the changes asynchronously.
+                await _dbContext.SaveChangesAsync();
+
+                // The operation succeeded.
+                return Ok();
+            }
+            catch
+            {
+                return BadRequest();
+            }
         }
 
+        /// <summary>
+        /// Updates a manager's account.
+        /// </summary>
+        /// <param name="managerId"></param>
+        /// <param name="firstName"></param>
+        /// <param name="lastName"></param>
+        /// <param name="identityNumber"></param>
+        /// <param name="emailAddress"></param>
+        /// <returns></returns>
         [Route("api/Database/UpdateManagerAccount")]
         [HttpPut]
-        public async Task<ActionResult> UpdateManagerAccount(Manager manager)
+        public async Task<ActionResult> UpdateManagerAccount(int managerId, string firstName, string lastName, string identityNumber, string emailAddress)
         {
-            _dbContext.Manager.Update(manager);
-            await _dbContext.SaveChangesAsync();
+            try
+            {
+                // Obtain the manager object.
+                Manager manager = _dbContext.Manager.Where(i => i.ManagerID == managerId).ToArray()[0];
 
-            return Ok();
+                // Update the fields.
+                manager.FirstName = firstName;
+                manager.LastName = lastName;
+                manager.IdentityNumber = identityNumber;
+                manager.EmailAddress = emailAddress;
+
+                // Update the Manager table.
+                _dbContext.Manager.Update(manager);
+                // Save the changes asynchronously.
+                await _dbContext.SaveChangesAsync();
+
+                // The operation succeeded.
+                return Ok();
+            }
+            catch
+            {
+                return BadRequest();
+            }
         }
 
-        public async Task<ActionResult> UpdateRequest(Request request)
+        /// <summary>
+        /// Updates the claim.
+        /// </summary>
+        /// <param name="requestId"></param>
+        /// <param name="requestFor"></param>
+        /// <param name="hoursWorked"></param>
+        /// <param name="hourlyRate"></param>
+        /// <param name="description"></param>
+        /// <returns></returns>
+        [Route("api/Database/UpdateRequest")]
+        [HttpPut]
+        public async Task<ActionResult> UpdateRequest(int requestId, string requestFor, double hoursWorked, double hourlyRate, string description)
         {
-            _dbContext.Request.Update(request);
-            await _dbContext.SaveChangesAsync();
+            try
+            {
+                // Declare a Request object.
+                Request request = _dbContext.Request.Where(i => i.RequestID == requestId).ToArray()[0];
 
-            return Ok();
+                // Update the fields.
+                request.RequestFor = requestFor;
+                request.HoursWorked = hoursWorked;
+                request.HourlyRate = hourlyRate;
+                request.Description = description;
+
+                // Update the Request table.
+                _dbContext.Request.Update(request);
+                // Save the changes asynchronously.
+                await _dbContext.SaveChangesAsync();
+
+                // The operation succeeded.
+                return Ok();
+            }
+            catch
+            {
+                return BadRequest();
+            }
         }
 
         // ------------------ HTTP DELETE ------------------
 
+        /// <summary>
+        /// Deletes a lecturer's account.
+        /// </summary>
+        /// <param name="lecturerId"></param>
+        /// <returns></returns>
         [Route("api/Database/DeleteLecturerAccount")]
         [HttpDelete]
-        public async Task<ActionResult> DeleteLecturerAccount(Lecturer lecturer)
+        public async Task<ActionResult> DeleteLecturerAccount(int lecturerId)
         {
-            _dbContext.Lecturer.Remove(lecturer);
-            await _dbContext.SaveChangesAsync();
+            try
+            {
+                // Get the lecturer object.
+                Lecturer lecturer = _dbContext.Lecturer.Where(i => i.LecturerID == lecturerId).ToArray()[0];
 
-            return Ok();
+                // Remove data from the Lecturer table.
+                _dbContext.Lecturer.Remove(lecturer);
+                // Save the changes asynchronously.
+                await _dbContext.SaveChangesAsync();
+
+                // The operation succeeded.
+                return Ok();
+            }
+            catch
+            {
+                return BadRequest();
+            }
         }
 
+        /// <summary>
+        /// Deletes a claim.
+        /// </summary>
+        /// <param name="requestId"></param>
+        /// <returns></returns>
         [Route("api/Database/DeleteRequest")]
         [HttpDelete]
-        public async Task<ActionResult> DeleteRequest(Request request)
+        public async Task<ActionResult> DeleteRequest(int requestId)
         {
-            _dbContext.Request.Remove(request);
-            await _dbContext.SaveChangesAsync();
+            try
+            {
+                // Create a Request object.
+                Request request = _dbContext.Request.Where(i => i.RequestID == requestId).ToArray()[0];
 
-            return Ok();
+                // Remove data from the Request table.
+                _dbContext.Request.Remove(request);
+                // Save the changes asynchronously.
+                await _dbContext.SaveChangesAsync();
+
+                // The operation succeeded.
+                return Ok();
+            }
+            catch
+            {
+                return BadRequest();
+            }
         }
     }
 }

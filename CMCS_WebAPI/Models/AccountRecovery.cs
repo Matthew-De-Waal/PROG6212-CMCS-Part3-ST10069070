@@ -2,8 +2,10 @@
 
 namespace CMCS_WebAPI.Models
 {
+    // This class represents the AccountRecovery entity within the database.
     public class AccountRecovery
     {
+        // Automatic Properties
         [Key]
         [Required]
         public int AccountRecoveryID { get; set; }

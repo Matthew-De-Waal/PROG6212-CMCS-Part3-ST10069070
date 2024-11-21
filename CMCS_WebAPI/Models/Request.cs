@@ -2,8 +2,10 @@
 
 namespace CMCS_WebAPI.Models
 {
+    // This class represents the Request entity within the database.
     public class Request
     {
+        // Automatic Properties
         [Key]
         [Required]
         public int RequestID { get; set; }

@@ -2,8 +2,10 @@
 
 namespace CMCS_WebAPI.Models
 {
+    // This class represents the Manager entity within the database.
     public class Manager
     {
+        // Automatic Properties
         [Key]
         [Required]
         public int ManagerID { get; set; }

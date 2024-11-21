@@ -2,8 +2,10 @@
 
 namespace CMCS_WebAPI.Models
 {
+    // This class represents the Lecturer entity within the database.
     public class Lecturer
     {
+        // Automatic Properties
         [Key]
         [Required]
         public int LecturerID { get; set; }

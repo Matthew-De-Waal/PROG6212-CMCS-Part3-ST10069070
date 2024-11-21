@@ -1,3 +1,9 @@
+The CMCS project includes a Web API project for sending
+GET, POST, PUT and DELETE requests to the database server.
+Developers can use this Web API project as an alternative
+for manipulating the CMCS database.
+
+
 Test Data for creating new users:
 ---------------------------------
 

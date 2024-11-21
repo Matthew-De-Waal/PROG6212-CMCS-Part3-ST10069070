@@ -2,8 +2,10 @@
 
 namespace CMCS_WebAPI.Models
 {
+    // This class represents the RequestProcess entity within the database.
     public class RequestProcess
     {
+        // Automatic Properties
         [Key]
         [Required]
         public int RequestProcessID { get; set; }

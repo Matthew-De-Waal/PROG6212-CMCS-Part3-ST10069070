@@ -349,7 +349,7 @@ namespace CMCS_WebAPI.Controllers
                 // Obtain the lecturer object.
                 Lecturer lecturer = _dbContext.Lecturer.Where(i => i.LecturerID == lecturerId).ToArray()[0];
 
-                // Update the fields.
+                // Update the properties.
                 lecturer.FirstName = firstName;
                 lecturer.LastName = lastName;
                 lecturer.IdentityNumber = identityNumber;
@@ -365,6 +365,7 @@ namespace CMCS_WebAPI.Controllers
             }
             catch
             {
+                // The operation failed.
                 return BadRequest();
             }
         }
@@ -387,7 +388,7 @@ namespace CMCS_WebAPI.Controllers
                 // Obtain the manager object.
                 Manager manager = _dbContext.Manager.Where(i => i.ManagerID == managerId).ToArray()[0];
 
-                // Update the fields.
+                // Update the properties.
                 manager.FirstName = firstName;
                 manager.LastName = lastName;
                 manager.IdentityNumber = identityNumber;
@@ -403,6 +404,7 @@ namespace CMCS_WebAPI.Controllers
             }
             catch
             {
+                // The operation failed.
                 return BadRequest();
             }
         }
@@ -425,7 +427,7 @@ namespace CMCS_WebAPI.Controllers
                 // Declare a Request object.
                 Request request = _dbContext.Request.Where(i => i.RequestID == requestId).ToArray()[0];
 
-                // Update the fields.
+                // Update the properties.
                 request.RequestFor = requestFor;
                 request.HoursWorked = hoursWorked;
                 request.HourlyRate = hourlyRate;
@@ -441,6 +443,7 @@ namespace CMCS_WebAPI.Controllers
             }
             catch
             {
+                // The operation failed.
                 return BadRequest();
             }
         }
@@ -471,6 +474,7 @@ namespace CMCS_WebAPI.Controllers
             }
             catch
             {
+                // The operation failed.
                 return BadRequest();
             }
         }
@@ -499,6 +503,7 @@ namespace CMCS_WebAPI.Controllers
             }
             catch
             {
+                // The operation failed.
                 return BadRequest();
             }
         }

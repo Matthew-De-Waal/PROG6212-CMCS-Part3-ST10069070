@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CMCS", "CMCS\CMCS.csproj", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CMCS.UnitTests", "CMCS.UnitTests\CMCS.UnitTests.csproj", "{27602E40-9CDF-44BF-B8C0-44C193564369}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CMCS_WebAPI", "CMCS_WebAPI\CMCS_WebAPI.csproj", "{660BB2AC-5036-4F95-93FD-1A7E01324F69}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{27602E40-9CDF-44BF-B8C0-44C193564369}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{27602E40-9CDF-44BF-B8C0-44C193564369}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{27602E40-9CDF-44BF-B8C0-44C193564369}.Release|Any CPU.Build.0 = Release|Any CPU
+		{660BB2AC-5036-4F95-93FD-1A7E01324F69}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{660BB2AC-5036-4F95-93FD-1A7E01324F69}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{660BB2AC-5036-4F95-93FD-1A7E01324F69}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{660BB2AC-5036-4F95-93FD-1A7E01324F69}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
